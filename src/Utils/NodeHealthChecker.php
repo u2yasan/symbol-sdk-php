@@ -11,7 +11,8 @@ final readonly class NodeHealthChecker
     public function __construct(
         private int $timeoutSeconds = 5,
         private int $maxRetries = 3
-    ) {}
+    ) {
+    }
 
     /**
      * ノードが生きているかチェック
@@ -19,7 +20,7 @@ final readonly class NodeHealthChecker
     public function isNodeAlive(string $nodeUrl): bool
     {
         $nodeInfoUrl = rtrim($nodeUrl, '/') . '/node/info';
-        
+
         $context = stream_context_create([
             'http' => [
                 'method' => 'GET',
@@ -37,7 +38,7 @@ final readonly class NodeHealthChecker
                 $data = json_decode($response, true);
                 return is_array($data) && isset($data['publicKey']);
             }
-            
+
             if ($i < $this->maxRetries - 1) {
                 usleep(500000); // 0.5秒待機
             }
@@ -52,7 +53,7 @@ final readonly class NodeHealthChecker
     public function filterAliveNodes(array $nodes): array
     {
         $aliveNodes = [];
-        
+
         foreach ($nodes as $node) {
             if ($this->isNodeAlive($node)) {
                 $aliveNodes[] = $node;
