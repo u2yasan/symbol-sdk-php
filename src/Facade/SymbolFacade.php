@@ -4,247 +4,184 @@ declare(strict_types=1);
 
 namespace SymbolSdk\Facade;
 
-use DateTime;
-use Exception;
-use SymbolSdk\CryptoTypes\Hash256;
-use SymbolSdk\CryptoTypes\PrivateKey;
-use SymbolSdk\CryptoTypes\PublicKey;
-use SymbolSdk\CryptoTypes\SharedKey256;
-use SymbolSdk\CryptoTypes\Signature;
-use SymbolSdk\Merkle\MerkleHashBuilder;
-use SymbolSdk\Network\NetworkLocator;
-use SymbolSdk\Symbol\Address;
-use SymbolSdk\Symbol\KeyPair;
-use SymbolSdk\Symbol\Models;
-use SymbolSdk\Symbol\Models\Hash256 as ModelsHash256;
-use SymbolSdk\Symbol\Network;
-use SymbolSdk\Symbol\NetworkTimestamp;
-use SymbolSdk\Symbol\SharedKeySymbol;
-use SymbolSdk\Symbol\SymbolAccount;
-use SymbolSdk\Symbol\SymbolPublicAccount;
-use SymbolSdk\Symbol\Verifier;
+use SymbolSdk\Symbol\Enums\NetworkType;
+use SymbolSdk\Symbol\Models\{Account, PublicAccount, TransferTransaction};
+use SymbolSdk\Symbol\ValueObjects\{Amount, Timestamp, Address};
+use SymbolSdk\CryptoTypes\{PrivateKey, PublicKey, Signature};
+use SymbolSdk\Utils\{TransactionFactory, NodeHealthChecker};
 
-/**
- * Facade used to interact with Symbol blockchain.
- */
-class SymbolFacade
+final readonly class SymbolFacade
 {
-    /**
-     * Network address class type.
-     *
-     * @var string The fully qualified class name of Address
-     */
-    public static string $Address = Address::class;
+    public NetworkConfig $config;
 
-    /**
-     * Network key pair class type.
-     *
-     * @var string The fully qualified class name of KeyPair
-     */
-    public static string $KeyPair = KeyPair::class;
-
-    /**
-     * Network verifier class type.
-     *
-     * @var string The fully qualified class name of Verifier
-     */
-    public static string $Verifier = Verifier::class;
-
-    /**
-     * Derives shared key from key pair and other party's public key.
-     *
-     * @param KeyPair $keyPair Key pair.
-     * @param PublicKey $otherPublicKey Other party's public key.
-     * @return SharedKey256 Shared encryption key.
-     */
-    public static function deriveSharedKey(KeyPair $keyPair, PublicKey $otherPublicKey): SharedKey256
+    public function __construct(NetworkType|string $network, ?array $customNodes = null)
     {
-        return SharedKeySymbol::deriveSharedKey($keyPair, $otherPublicKey);
-    }
-
-    private static function isAggregateTransaction(string $transactionBuffer): bool
-    {
-        $TRANSACTION_HEADER_SIZE = 4 + 4 + Signature::$SIZE + PublicKey::$SIZE + 4;
-        $transactionTypeOffset = $TRANSACTION_HEADER_SIZE + 2; // skip version and network byte
-        $transactionType = (\ord($transactionBuffer[$transactionTypeOffset + 1]) << 8) + \ord($transactionBuffer[$transactionTypeOffset]);
-        $aggregateTypes = [Models\TransactionType::AGGREGATE_BONDED, Models\TransactionType::AGGREGATE_COMPLETE];
-        return \in_array($transactionType, $aggregateTypes, true);
-    }
-
-    private static function transactionDataBuffer(string $transactionBuffer): string
-    {
-        $TRANSACTION_HEADER_SIZE = 4 + 4 + Signature::$SIZE + PublicKey::$SIZE + 4;
-        $AGGREGATE_HASHED_SIZE = 4 + 8 + 8 + Hash256::$SIZE;
-        $dataBufferStart = $TRANSACTION_HEADER_SIZE;
-        $dataBufferEnd = self::isAggregateTransaction($transactionBuffer)
-            ? $TRANSACTION_HEADER_SIZE + $AGGREGATE_HASHED_SIZE
-            : \strlen($transactionBuffer);
-        return substr($transactionBuffer, $dataBufferStart, $dataBufferEnd - $dataBufferStart);
-    }
-
-    public const BIP32_CURVE_NAME = 'ed25519';
-
-    public Network $network;
-
-    /**
-     * Creates a Symbol facade.
-     * @param string|Network network Symbol network or network name.
-     */
-    public function __construct($network)
-    {
-        Network::initialize();
-        $this->network = \gettype($network) === 'string' ? NetworkLocator::findByName(Network::$NETWORKS, $network) : $network;
-    }
-
-    /**
-     * Gets class type.
-     * @return SymbolFacade Class type.
-     */
-    public function static(): string
-    {
-        return self::class;
-    }
-
-    /**
-     * Creates a network timestamp representing the current time.
-     * @return NetworkTimestamp Network timestamp representing the current time.
-     */
-    public function now(): NetworkTimestamp
-    {
-        return $this->network->fromDatetime(new DateTime());
-    }
-
-    /**
-     * Creates a Symbol public account from a public key.
-     * @param PublicKey|Models\PublicKey publicKey Account public key.
-     * @return SymbolPublicAccount Symbol public account.
-     */
-    public function createPublicAccount(PublicKey|Models\PublicKey $publicKey): SymbolPublicAccount
-    {
-        return new SymbolPublicAccount($this, $publicKey);
-    }
-
-    /**
-     * Creates a Symbol account from a private key.
-     * @param PrivateKey privateKey Account private key.
-     * @return SymbolAccount Symbol account.
-     */
-    public function createAccount(PrivateKey $privateKey): SymbolAccount
-    {
-        return new SymbolAccount($this, new KeyPair($privateKey));
-    }
-
-    /**
-     * Hashes a Symbol transaction.
-     * @param Models\Transaction transaction Transaction object.
-     * @return Hash256 Transaction hash.
-     */
-    public function hashTransaction(Models\Transaction $transaction): Hash256
-    {
-        $hasher = hash_init('sha3-256');
-        hash_update($hasher, $transaction->signature->binaryData);
-        hash_update($hasher, $transaction->signerPublicKey->binaryData);
-        hash_update($hasher, $this->network->generationHashSeed->binaryData);
-        hash_update($hasher, self::transactionDataBuffer($transaction->serialize()));
-        $digest = hash_final($hasher, true);
-        return new Hash256($digest);
-    }
-
-    /**
-     * Signs a Symbol transaction.
-     * @param KeyPair keyPair Key pair.
-     * @param Models\Transaction transaction Transaction object.
-     * @return Signature Transaction signature.
-     */
-    public function signTransaction(KeyPair $keyPair, Models\Transaction $transaction): Signature
-    {
-        return $keyPair->sign($this->network->generationHashSeed->binaryData . self::transactionDataBuffer($transaction->serialize()));
-    }
-
-    /**
-     * Verifies a Symbol transaction.
-     * @param Models\Transaction transaction Transaction object.
-     * @param Signature signature Signature to verify.
-     * @return bool \c true if transaction signature is verified.
-     */
-    public function verifyTransaction(Models\Transaction $transaction, Signature $signature): bool
-    {
-        $verifyBuffer = $this->network->generationHashSeed->binaryData . self::transactionDataBuffer($transaction->serialize());
-        $verifier = new Verifier($transaction->signerPublicKey);
-        return $verifier->verify($verifyBuffer, $signature);
-    }
-
-    /**
-     * Cosigns a Symbol transaction.
-     * @param KeyPair keyPair Key pair of the cosignatory.
-     * @param Models\Transaction transaction Transaction object.
-     * @param bool detached \c true if resulting cosignature is appropriate for network propagation.
-     *                           \c false if resulting cosignature is appropriate for attaching to an aggregate.
-     * @return Models\Cosignature|Models\DetachedCosignature Signed cosignature.
-     */
-    public function cosignTransaction(KeyPair $keyPair, Models\Transaction $transaction, bool $detached = false): Models\Cosignature|Models\DetachedCosignature
-    {
-        $transactionHash = $this->hashTransaction($transaction);
-        $initializeCosignature = function (Models\Cosignature &$cosignature) use ($keyPair, $transactionHash) {
-            $cosignature->version = 0;
-            $cosignature->signerPublicKey = new Models\PublicKey($keyPair->publicKey()->binaryData);
-            $cosignature->signature = new Models\Signature($keyPair->sign($transactionHash->binaryData));
+        $networkType = match(true) {
+            $network instanceof NetworkType => $network,
+            is_string($network) => NetworkType::fromName($network),
+            default => throw new \InvalidArgumentException('Invalid network type'),
         };
 
-        if ($detached) {
-            $cosignature = new Models\DetachedCosignature();
-            $cosignature->parentHash = new Hash256($transactionHash);
-            $initializeCosignature($cosignature);
-            return $cosignature;
-        }
-
-        $cosignature = new Models\Cosignature();
-        $initializeCosignature($cosignature);
-        return $cosignature;
+        $this->config = new NetworkConfig($networkType, $customNodes);
     }
 
-    /**
-     * Hashes embedded transactions of an aggregate transaction.
-     * @param array embeddedTransactions Embedded transactions to hash.
-     * @return ModelsHash256 Aggregate transactions hash.
-     */
-    public static function hashEmbeddedTransactions($embeddedTransactions): ModelsHash256
-    {
-        $hashBuilder = new MerkleHashBuilder();
-        foreach ($embeddedTransactions as $tx) {
-            $hashBuilder->update(new ModelsHash256(hash('sha3-256', $tx->serialize())));
-        }
+    // === Account Management ===
 
-        return $hashBuilder->final();
+    public function createAccount(?PrivateKey $privateKey = null): Account
+    {
+        $privateKey ??= PrivateKey::random();
+        return $privateKey->createAccount($this->config->networkType);
     }
 
-    /**
-     * Attaches a signature to a transaction.
-     * @param Models\Transaction transaction Transaction object.
-     * @param Signature signature Signature to attach.
-     * @param int payload type 0: array 1: json 2: string only payload.
-     * @return string JSON transaction payload.
-     */
-    public static function attachSignature(Models\Transaction &$transaction, Signature $signature, int $payloadType = 0)
+    public function createAccountFromMnemonic(string $mnemonic, string $passphrase = ''): Account
     {
-        $transaction->signature = new Models\Signature($signature->binaryData);
-        $transactionBuffer = $transaction->serialize();
-        $hexPayload = strtoupper(bin2hex($transactionBuffer));
-        switch ($payloadType) {
-            case 0:
-                return ['payload' => $hexPayload];
-            case 1:
-                return json_encode(['payload' => $hexPayload]);
-            case 2:
-                return $hexPayload;
-            default:
-                throw new Exception('invalid payload type');
-        }
+        $privateKey = PrivateKey::fromMnemonic($mnemonic, $passphrase);
+        return $this->createAccount($privateKey);
     }
 
-    public const COSIGNATURE_SIZE = 104;
-    public static function setMaxFee(Models\Transaction &$transaction, int $feeMultiplier, int $cosignatureCount = 0)
+    public function createPublicAccount(PublicKey $publicKey): PublicAccount
     {
-        $transaction->fee = new Models\Amount(($transaction->size() + $cosignatureCount * self::COSIGNATURE_SIZE) * $feeMultiplier);
+        return $publicKey->createPublicAccount($this->config->networkType);
+    }
+
+    // === Transaction Creation ===
+
+    public function createTransfer(
+        PublicKey $signerPublicKey,
+        Address $recipientAddress,
+        array $mosaics = [],
+        string $message = '',
+        ?Timestamp $deadline = null
+    ): TransferTransaction {
+        return TransactionFactory::createTransfer(
+            network: $this->config->networkType,
+            signerPublicKey: $signerPublicKey,
+            recipientAddress: $recipientAddress,
+            mosaics: $mosaics,
+            message: $message,
+            deadline: $deadline
+        );
+    }
+
+    public function createXymTransfer(
+        PublicKey $signerPublicKey,
+        Address $recipientAddress,
+        Amount $amount,
+        string $message = '',
+        ?Timestamp $deadline = null
+    ): TransferTransaction {
+        return TransactionFactory::createXymTransfer(
+            network: $this->config->networkType,
+            signerPublicKey: $signerPublicKey,
+            recipientAddress: $recipientAddress,
+            amount: $amount,
+            message: $message,
+            deadline: $deadline
+        );
+    }
+
+    // === Transaction Management ===
+
+    public function signTransaction(TransferTransaction $transaction, Account $signer): TransferTransaction
+    {
+        $signature = $signer->signTransaction($transaction);
+        return $transaction->withSignature($signature);
+    }
+
+    public function setMaxFee(TransferTransaction $transaction, int $feeMultiplier = 100): TransferTransaction
+    {
+        return TransactionFactory::setMaxFee($transaction, $feeMultiplier);
+    }
+
+    public function announceTransaction(TransferTransaction $signedTransaction): array
+    {
+        if (!$signedTransaction->isSigned()) {
+            throw new \InvalidArgumentException('Transaction must be signed before announcing');
+        }
+
+        return [
+            'payload' => $signedTransaction->serialize(),
+            'hash' => $signedTransaction->calculateHash()->toString(),
+            'signerPublicKey' => $signedTransaction->signerPublicKey->toString(),
+            'type' => $signedTransaction->type->getName(),
+            'network' => $this->config->networkType->getName(),
+            'fee' => $signedTransaction->fee->toString(),
+            'deadline' => $signedTransaction->deadline->format(),
+        ];
+    }
+
+    // === Utility Methods ===
+
+    public function now(): Timestamp
+    {
+        return Timestamp::now();
+    }
+
+    public function createTimestamp(?int $secondsFromNow = null): Timestamp
+    {
+        if ($secondsFromNow === null) {
+            return $this->now();
+        }
+        return $this->now()->addSeconds($secondsFromNow);
+    }
+
+    public function getNodeHealthChecker(): NodeHealthChecker
+    {
+        return new NodeHealthChecker();
+    }
+
+    public function getHealthyNodes(): array
+    {
+        return $this->config->getHealthyNodes();
+    }
+
+    public function getBestNode(): string
+    {
+        return $this->config->getBestNode();
+    }
+
+    // === Convenience Methods ===
+
+    public function createRandomAccount(): Account
+    {
+        return $this->createAccount();
+    }
+
+    public function parseAddress(string $address): Address
+    {
+        return new Address($address);
+    }
+
+    public function createAmount(int|float|string $amount, bool $isXym = true): Amount
+    {
+        if ($isXym && is_numeric($amount)) {
+            return Amount::fromXym((float) $amount);
+        }
+        return new Amount($amount);
+    }
+
+    // === Information Methods ===
+
+    public function getNetworkInfo(): array
+    {
+        return [
+            'networkType' => $this->config->networkType->getName(),
+            'networkValue' => $this->config->networkType->value,
+            'generationHashSeed' => $this->config->generationHashSeed,
+            'currencyMosaicId' => $this->config->currencyMosaicId->toHex(),
+            'epochAdjustment' => $this->config->epochAdjustment,
+            'configuredNodes' => count($this->config->nodes),
+            'recommendedNodes' => $this->config->nodes,
+        ];
+    }
+
+    public function validateAddress(string $address): bool
+    {
+        try {
+            new Address($address);
+            return true;
+        } catch (\InvalidArgumentException) {
+            return false;
+        }
     }
 }
