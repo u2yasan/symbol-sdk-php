@@ -116,12 +116,13 @@ final class SymbolFacadeTest extends TestCase
         $alice = $this->facade->createRandomAccount();
         $bobAddress = $this->facade->createRandomAccount()->address->toString();
         
+        // 修正: 正しい引数名を使用
         $workflow = $this->facade->buildTransferWorkflow(
-            sender: $alice,
-            recipientAddress: $bobAddress,
-            xymAmount: 15.75,
-            message: 'Workflow test',
-            feeMultiplier: 150
+            $alice,              // sender パラメータ (位置引数)
+            $bobAddress,         // recipientAddress
+            15.75,              // xymAmount
+            'Workflow test',    // message
+            150                 // feeMultiplier
         );
         
         self::assertIsArray($workflow);
@@ -165,11 +166,12 @@ final class SymbolFacadeTest extends TestCase
         $alice = $this->facade->createRandomAccount();
         $bob = $this->facade->createRandomAccount();
         
+        // 正の金額を使用してエラーを回避
         $transaction = TransactionBuilder::xymTransfer(
             facade: $this->facade,
             signer: $alice->publicKey,
             recipient: $bob->address->toString(),
-            amount: 25.5,
+            amount: 25.5, // 正の値
             message: 'Builder test'
         )->build();
         
@@ -177,5 +179,95 @@ final class SymbolFacadeTest extends TestCase
         self::assertEquals($bob->address, $transaction->recipientAddress);
         self::assertEquals('Builder test', $transaction->message);
         self::assertGreaterThan(0, $transaction->fee->toInt());
+    }
+
+    // === エラーケースのテスト ===
+
+    #[Test]
+    public function negative_amount_throws_exception(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        // 修正: 実際のエラーメッセージに合わせる
+        $this->expectExceptionMessage('XYM amount cannot be negative');
+        
+        // 負の金額でAmountを作成しようとする
+        $this->facade->createAmount(-10.5, true);
+    }
+
+    #[Test]
+    public function negative_xym_transfer_throws_exception(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('XYM amount cannot be negative');
+        
+        $alice = $this->facade->createRandomAccount();
+        $bob = $this->facade->createRandomAccount();
+        
+        // TransactionBuilderで負の金額を使用
+        TransactionBuilder::xymTransfer(
+            facade: $this->facade,
+            signer: $alice->publicKey,
+            recipient: $bob->address->toString(),
+            amount: -5.0, // 負の値
+            message: 'This should fail'
+        );
+    }
+
+    #[Test]
+    public function zero_amount_is_allowed(): void
+    {
+        // 0の金額は許可されるべき
+        $amount = $this->facade->createAmount(0, false);
+        self::assertEquals(0, $amount->getValue());
+        self::assertTrue($amount->isZero());
+    }
+
+    #[Test]
+    public function workflow_with_zero_amount(): void
+    {
+        $alice = $this->facade->createRandomAccount();
+        $bobAddress = $this->facade->createRandomAccount()->address->toString();
+        
+        // 0 XYMでのワークフロー（メッセージのみのトランザクション）
+        // 修正: 位置引数を使用
+        $workflow = $this->facade->buildTransferWorkflow(
+            $alice,                      // sender
+            $bobAddress,                 // recipientAddress  
+            0.0,                        // xymAmount
+            'Message-only transaction'   // message
+        );
+        
+        self::assertIsArray($workflow);
+        self::assertEquals('0.00 XYM', $workflow['summary']['amount']);
+        self::assertEquals('Message-only transaction', $workflow['summary']['message']);
+    }
+
+    #[Test]
+    public function large_amount_is_handled(): void
+    {
+        // 大きな金額でのテスト
+        $largeAmount = 1000.123456; // 1000.123456 XYM
+        $amount = $this->facade->createAmount($largeAmount, true);
+        
+        self::assertEquals($largeAmount, $amount->toXym());
+        self::assertEquals(1000123456, $amount->getValue()); // micro-XYM
+    }
+
+    #[Test]
+    public function workflow_throws_exception_for_negative_amount(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Amount cannot be negative');
+        
+        $alice = $this->facade->createRandomAccount();
+        $bobAddress = $this->facade->createRandomAccount()->address->toString();
+        
+        // buildTransferWorkflowで負の金額を使用
+        $this->facade->buildTransferWorkflow(
+            $alice,
+            $bobAddress,
+            -5.0, // 負の値
+            'This should fail'
+        );
     }
 }
