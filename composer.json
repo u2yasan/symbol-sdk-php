@@ -61,11 +61,13 @@
         "test": "phpunit",
         "test-coverage": "phpunit --coverage-html build/coverage",
         "phpstan": "phpstan analyse src --level=1 --memory-limit=1G --no-progress",
-        "rector": "rector process --dry-run",
+	"rector": "rector process --dry-run",
         "rector-fix": "rector process",
         "cs-check": "php-cs-fixer fix --dry-run --diff --allow-risky=yes",
         "cs-fix": "php-cs-fixer fix --allow-risky=yes",
-        "qa": [
+        "cs-fix-enums": "php-cs-fixer fix src/Symbol/Enums --allow-risky=yes",
+        "cs-fix-utils": "php-cs-fixer fix src/Utils --allow-risky=yes",
+	"qa": [
             "@cs-check",
             "@phpstan",
             "@test"
