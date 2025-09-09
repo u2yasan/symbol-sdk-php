@@ -8,20 +8,24 @@ readonly class Timestamp
 {
     public \GMP $value;
 
-    public function __construct(int|\DateTimeInterface|\GMP $timestamp = null)
+    public function __construct(int|\DateTimeInterface|\GMP|null $timestamp = null)
     {
         $this->value = match(true) {
             $timestamp === null => gmp_init(time() * 1000),
-            \is_int($timestamp) => gmp_init($timestamp),
+            is_int($timestamp) => gmp_init($timestamp * 1000), // Convert seconds to milliseconds
             $timestamp instanceof \GMP => $timestamp,
             $timestamp instanceof \DateTimeInterface => gmp_init($timestamp->getTimestamp() * 1000),
             default => throw new \InvalidArgumentException('Invalid timestamp type'),
         };
 
         // Symbol epoch start: 2021-03-16 00:06:25 UTC (1615852585)
-        $symbolEpochStart = gmp_init(1615852585 * 1000);
+        // In milliseconds: 1615852585000
+        $symbolEpochStart = gmp_init(1615852585000);
         if (gmp_cmp($this->value, $symbolEpochStart) < 0) {
-            throw new \InvalidArgumentException('Timestamp cannot be before Symbol epoch start');
+            throw new \InvalidArgumentException(
+                'Timestamp cannot be before Symbol epoch start (2021-03-16 00:06:25 UTC). ' .
+                'Given: ' . $this->toDateTime()->format('Y-m-d H:i:s') . ' UTC'
+            );
         }
     }
 
@@ -37,12 +41,19 @@ readonly class Timestamp
 
     public static function fromUnixTimestamp(int $unixTimestamp): self
     {
-        return new self($unixTimestamp * 1000);
+        return new self($unixTimestamp);
+    }
+
+    public static function fromMilliseconds(int $milliseconds): self
+    {
+        $timestamp = new self();
+        $timestamp->value = gmp_init($milliseconds);
+        return $timestamp;
     }
 
     public function addSeconds(int $seconds): self
     {
-        return new self(gmp_add($this->value, gmp_mul($seconds, 1000)));
+        return new self(gmp_intval(gmp_div($this->value, 1000)) + $seconds);
     }
 
     public function addMinutes(int $minutes): self
