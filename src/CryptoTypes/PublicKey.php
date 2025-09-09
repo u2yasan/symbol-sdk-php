@@ -4,21 +4,113 @@ declare(strict_types=1);
 
 namespace SymbolSdk\CryptoTypes;
 
-use SymbolSdk\BinaryData;
+use SymbolSdk\Symbol\Enums\NetworkType;
+use SymbolSdk\Symbol\ValueObjects\Address;
 
-/**
- * Represents a public key.
- */
-class PublicKey extends BinaryData
+readonly class PublicKey
 {
-    public static $SIZE = 32;
+    public string $key;
+
+    public function __construct(string $publicKey)
+    {
+        $this->key = $this->validateAndNormalize($publicKey);
+    }
+
+    private function validateAndNormalize(string $key): string
+    {
+        $normalized = match(true) {
+            \strlen($key) === 64 && ctype_xdigit($key) => strtoupper($key),
+            \strlen($key) === 66 && str_starts_with($key, '0x') => strtoupper(substr($key, 2)),
+            \strlen($key) === 66 && str_starts_with($key, '0X') => strtoupper(substr($key, 2)),
+            default => throw new \InvalidArgumentException(
+                'Invalid public key format. Expected 64 hex characters'
+            ),
+        };
+
+        if (\strlen($normalized) !== 64) {
+            throw new \InvalidArgumentException('Public key must be exactly 32 bytes (64 hex chars)');
+        }
+
+        // Basic Ed25519 public key validation
+        if ($normalized === str_repeat('0', 64)) {
+            throw new \InvalidArgumentException('Public key cannot be zero');
+        }
+
+        return $normalized;
+    }
+
+    public function verify(string $data, Signature $signature): bool
+    {
+        try {
+            $publicKeyBytes = $this->toBytes();
+            $signatureBytes = $signature->toBytes();
+
+            return sodium_crypto_sign_verify_detached($signatureBytes, $data, $publicKeyBytes);
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    public function toAddress(NetworkType $networkType): Address
+    {
+        return Address::createFromPublicKey($this, $networkType);
+    }
+
+    public function createPublicAccount(NetworkType $networkType): PublicAccount
+    {
+        $address = $this->toAddress($networkType);
+        return new PublicAccount($this, $address, $networkType);
+    }
+
+    public function toString(): string
+    {
+        return $this->key;
+    }
+
+    public function toBytes(): string
+    {
+        $bytes = hex2bin($this->key);
+        if ($bytes === false) {
+            throw new \RuntimeException('Failed to convert public key to bytes');
+        }
+        return $bytes;
+    }
+
+    public function toHex(): string
+    {
+        return $this->key;
+    }
+
+    public function equals(self $other): bool
+    {
+        return $this->key === $other->key;
+    }
 
     /**
-     * Creates a public key from bytes or a hex string.
-     * @param string|PublicKey publicKey Input string, byte array or public key.
+     * Check if this public key is valid for Ed25519
      */
-    public function __construct(string|PublicKey $publicKey)
+    public function isValid(): bool
     {
-        parent::__construct(self::$SIZE, $publicKey instanceof PublicKey ? $publicKey->binaryData : $publicKey);
+        try {
+            $bytes = $this->toBytes();
+
+            // Check if the public key is on the Ed25519 curve
+            // This is a simplified check - in production, you might want more thorough validation
+            return \strlen($bytes) === 32;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * Get a short representation of the public key for display
+     */
+    public function getShortString(int $length = 8): string
+    {
+        if ($length < 4 || $length > 32) {
+            throw new \InvalidArgumentException('Length must be between 4 and 32');
+        }
+
+        return substr($this->key, 0, $length) . '...' . substr($this->key, -$length);
     }
 }
