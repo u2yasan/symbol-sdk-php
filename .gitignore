@@ -1,1 +1,10 @@
-src/index.php
+/vendor/
+/build/
+/node_modules/
+/.phpunit.cache/
+composer.lock
+.DS_Store
+.vscode/
+.idea/
+*.log
+.env
