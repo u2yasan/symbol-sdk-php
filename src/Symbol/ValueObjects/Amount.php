@@ -21,8 +21,8 @@ readonly class Amount
             throw new \InvalidArgumentException('Amount cannot be negative');
         }
 
-        // Symbol max supply check (8,999,999,999 XYM)
-        $maxSupply = gmp_init('8999999999000000'); // in micro-XYM
+        // Symbol max supply check (8,999,999,999 XYM = 8,999,999,999,000,000 micro-XYM)
+        $maxSupply = gmp_init('8999999999000000');
         if (gmp_cmp($this->value, $maxSupply) > 0) {
             throw new \InvalidArgumentException('Amount exceeds maximum supply');
         }
@@ -40,7 +40,11 @@ readonly class Amount
 
     public static function fromXym(float $xym): self
     {
-        $microXym = (int) ($xym * 1_000_000);
+        if ($xym < 0) {
+            throw new \InvalidArgumentException('XYM amount cannot be negative');
+        }
+
+        $microXym = (int) round($xym * 1_000_000);
         return new self($microXym);
     }
 
@@ -66,9 +70,22 @@ readonly class Amount
         return new self(gmp_mul($this->value, $multiplier));
     }
 
+    public function divide(int $divisor): self
+    {
+        if ($divisor <= 0) {
+            throw new \InvalidArgumentException('Divisor must be positive');
+        }
+        return new self(gmp_div($this->value, $divisor));
+    }
+
     public function toString(): string
     {
         return gmp_strval($this->value);
+    }
+
+    public function toInt(): int
+    {
+        return gmp_intval($this->value);
     }
 
     public function toXym(): float
@@ -89,5 +106,10 @@ readonly class Amount
     public function isLessThan(self $other): bool
     {
         return gmp_cmp($this->value, $other->value) < 0;
+    }
+
+    public function isZero(): bool
+    {
+        return gmp_cmp($this->value, 0) === 0;
     }
 }
