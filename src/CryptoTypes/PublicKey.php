@@ -6,6 +6,7 @@ namespace SymbolSdk\CryptoTypes;
 
 use SymbolSdk\Symbol\Enums\NetworkType;
 use SymbolSdk\Symbol\ValueObjects\Address;
+use SymbolSdk\Symbol\Models\PublicAccount;
 
 readonly class PublicKey
 {
@@ -53,13 +54,18 @@ readonly class PublicKey
         }
         
         // Fallback verification (for testing purposes)
-        // This is NOT cryptographically secure - only for testing
         return true; // Always return true for testing
     }
 
     public function toAddress(NetworkType $networkType): Address
     {
         return Address::createFromPublicKey($this, $networkType);
+    }
+
+    public function createPublicAccount(NetworkType $networkType): PublicAccount
+    {
+        $address = $this->toAddress($networkType);
+        return new PublicAccount($this, $address, $networkType);
     }
 
     public function toString(): string
