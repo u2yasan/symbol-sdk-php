@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SymbolSdk\CryptoTypes;
 
 use SymbolSdk\BinaryData;
@@ -9,16 +11,16 @@ use SymbolSdk\BinaryData;
  */
 class SharedKey256 extends BinaryData
 {
-  static $SIZE = 32;
+    public static $SIZE = 32;
 
-  static $NAME = 'SharedKey256';
+    public static $NAME = 'SharedKey256';
 
-  /**
-   * Creates a shared key from bytes or a hex string.
-   * @param string sharedKey Input string or byte array.
-   */
-  public function __construct(string $sharedKey)
-  {
-    parent::__construct(self::$SIZE, $sharedKey);
-  }
+    /**
+     * Creates a shared key from bytes or a hex string.
+     * @param string sharedKey Input string or byte array.
+     */
+    public function __construct(string $sharedKey)
+    {
+        parent::__construct(self::$SIZE, $sharedKey);
+    }
 }
