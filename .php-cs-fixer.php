@@ -8,19 +8,23 @@ $finder = PhpCsFixer\Finder::create()
     ->exclude('vendor')
     ->exclude('build')
     ->ignoreDotFiles(true)
-    ->ignoreVCS(true);
-
-if (is_dir(__DIR__ . '/src')) {
-    $finder->in(__DIR__ . '/src');
-} else {
-    $finder->in(__DIR__)
-           ->depth('== 0');
-}
+    ->ignoreVCS(true)
+    ->in(__DIR__ . '/src')  // srcディレクトリ全体を対象
+    ->in(__DIR__ . '/tests'); // testsディレクトリ全体を対象
 
 return (new PhpCsFixer\Config())
-    ->setRiskyAllowed(true)  // これが重要！
+    ->setRiskyAllowed(true)
     ->setRules([
         '@PSR12' => true,
         'declare_strict_types' => true,
+        'array_syntax' => ['syntax' => 'short'],
+        'ordered_imports' => ['sort_algorithm' => 'alpha'],
+        'no_unused_imports' => true,
+        'strict_comparison' => true,
+        'native_function_invocation' => [
+            'include' => ['@compiler_optimized'],
+            'scope' => 'namespaced',
+            'strict' => true,
+        ],
     ])
     ->setFinder($finder);
