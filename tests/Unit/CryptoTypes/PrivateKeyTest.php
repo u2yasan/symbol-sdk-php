@@ -13,6 +13,13 @@ final class PrivateKeyTest extends TestCase
 {
     private const SAMPLE_PRIVATE_KEY = '5DB8324E7EB83E7665D500B014283260EF312139034E86DFB7EE736503EA2222';
 
+    protected function setUp(): void
+    {
+        if (!extension_loaded('sodium')) {
+            $this->markTestSkipped('Sodium extension is not available');
+        }
+    }
+
     #[Test]
     public function creates_from_hex_string(): void
     {
@@ -36,6 +43,7 @@ final class PrivateKeyTest extends TestCase
         self::assertEquals(64, strlen($privateKey1->toString()));
         self::assertEquals(64, strlen($privateKey2->toString()));
         self::assertNotEquals($privateKey1->toString(), $privateKey2->toString());
+        self::assertTrue(ctype_xdigit($privateKey1->toString()));
     }
 
     #[Test]
