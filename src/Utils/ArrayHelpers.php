@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace SymbolSdk\Utils;
 
-use SplFixedArray;
 use ArrayAccess;
 use OutOfRangeException;
 use RangeException;
+use SplFixedArray;
 
 class ArrayHelpers
 {
@@ -19,7 +19,7 @@ class ArrayHelpers
      */
     public static function deepCompare(array|int|string $lhs, array|int|string $rhs): int
     {
-        if (!is_array($lhs) && !($lhs instanceof SplFixedArray) && !($lhs instanceof ArrayAccess)) {
+        if (!\is_array($lhs) && !($lhs instanceof SplFixedArray) && !($lhs instanceof ArrayAccess)) {
             if ($lhs === $rhs) {
                 return 0;
             }
@@ -31,11 +31,11 @@ class ArrayHelpers
             }
         }
 
-        if (count($lhs) !== count($rhs)) {
-            return count($lhs) > count($rhs) ? 1 : -1;
+        if (\count($lhs) !== \count($rhs)) {
+            return \count($lhs) > \count($rhs) ? 1 : -1;
         }
 
-        for ($i = 0; $i < count($lhs); ++$i) {
+        for ($i = 0; $i < \count($lhs); ++$i) {
             $compareResult = self::deepCompare($lhs[$i], $rhs[$i]);
             if ($compareResult !== 0) {
                 return $compareResult;
@@ -51,7 +51,7 @@ class ArrayHelpers
         $previousElement = null;
         $i = 0;
         while ($shouldContinue($i, $reader)) {
-            $element = call_user_func($factoryMethod, $reader);
+            $element = \call_user_func($factoryMethod, $reader);
 
             if ($element->size() <= 0) {
                 throw new RangeException('element size has invalid size');
@@ -89,7 +89,7 @@ class ArrayHelpers
      */
     public static function alignUp(int $size, int $alignment): int
     {
-        return intval(($size + $alignment - 1) / $alignment) * $alignment;
+        return \intval(($size + $alignment - 1) / $alignment) * $alignment;
     }
 
     /**
@@ -101,10 +101,10 @@ class ArrayHelpers
      */
     public static function size($elements, $alignment = 0, $skipLastElementPadding = false): int
     {
-        if ($elements == null) {
+        if ($elements === null) {
             return 0;
         }
-        if ($alignment == 0) {
+        if ($alignment === 0) {
             return array_sum(array_map(function ($e) {
                 return $e->size();
             }, $elements));
@@ -116,11 +116,11 @@ class ArrayHelpers
             }, $elements));
         }
 
-        $lastIndex = count($elements) - 1;
+        $lastIndex = \count($elements) - 1;
         $lastElement = $elements[$lastIndex];
         $sum = array_sum(array_map(function ($e) use ($alignment) {
             return self::alignUp($e->size(), $alignment);
-        }, array_slice($elements, 0, $lastIndex)));
+        }, \array_slice($elements, 0, $lastIndex)));
 
         $sum += $lastElement->size();
         return $sum;
@@ -166,7 +166,7 @@ class ArrayHelpers
         $elements = [];
         while (0 < $binarySize) {
             $buffer = $reader->readRemaining();
-            $element = call_user_func($deserializeFunc, $buffer);
+            $element = \call_user_func($deserializeFunc, $buffer);
 
             if (0 >= $element->size()) {
                 throw new OutOfRangeException('element size has invalid size');
@@ -177,7 +177,7 @@ class ArrayHelpers
             $alignedSize = ($skipLastElementPadding && $element->size() >= $reader->getRemainingLength())
                 ? $element->size()
                 : self::alignUp($element->size(), $alignment);
-            if ($alignedSize > strlen($buffer)) {
+            if ($alignedSize > \strlen($buffer)) {
                 throw new OutOfRangeException('unexpected buffer length');
             }
 
@@ -196,10 +196,10 @@ class ArrayHelpers
      */
     public static function writeArray(BinaryWriter $output, array $elements, $accessor = null)
     {
-        if ($elements == null) {
+        if ($elements === null) {
             return;
         }
-        self::writeArrayImpl($output, $elements, count($elements), $accessor);
+        self::writeArrayImpl($output, $elements, \count($elements), $accessor);
     }
 
     /**
@@ -211,7 +211,7 @@ class ArrayHelpers
      */
     public static function writeArrayCount(BinaryWriter $output, array $elements, int $count, $accessor = null)
     {
-        if ($elements == null) {
+        if ($elements === null) {
             return;
         }
         self::writeArrayImpl($output, $elements, $count, $accessor);
@@ -229,7 +229,7 @@ class ArrayHelpers
         foreach ($elements as $index => $element) {
             $output->write($element->serialize());
 
-            if (!$skipLastElementPadding || count($elements) - 1 !== $index) {
+            if (!$skipLastElementPadding || \count($elements) - 1 !== $index) {
                 $alignedSize = self::alignUp($element->size(), $alignment);
 
                 if ($alignedSize - $element->size() > 0) {

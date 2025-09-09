@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace SymbolSdk\Symbol;
 
-use SymbolSdk\Facade\SymbolFacade;
 use SymbolSdk\CryptoTypes\PublicKey;
-use SymbolSdk\Symbol\Models\UnresolvedAddress;
+use SymbolSdk\Facade\SymbolFacade;
 use SymbolSdk\Symbol\Models\PublicKey as ModelsPublicKey;
+use SymbolSdk\Symbol\Models\UnresolvedAddress;
 
 /**
  * Symbol public account.

@@ -11,8 +11,8 @@ readonly class Amount
     public function __construct(int|string|\GMP $amount)
     {
         $this->value = match(true) {
-            is_int($amount) => gmp_init($amount),
-            is_string($amount) => gmp_init($amount, 10),
+            \is_int($amount) => gmp_init($amount),
+            \is_string($amount) => gmp_init($amount, 10),
             $amount instanceof \GMP => $amount,
             default => throw new \InvalidArgumentException('Invalid amount type'),
         };

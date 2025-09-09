@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace SymbolSdk\Tests\Unit\Symbol\Enums;
 
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 use SymbolSdk\Symbol\Enums\NetworkType;
 
 final class NetworkTypeTest extends TestCase
@@ -50,8 +50,8 @@ final class NetworkTypeTest extends TestCase
         $fallbackNodes = NetworkType::MAINNET->getFallbackNodes();
 
         self::assertGreaterThanOrEqual(
-            count($recommendedNodes),
-            count($allMainnetNodes)
+            \count($recommendedNodes),
+            \count($allMainnetNodes)
         );
 
         // 推奨ノードがすべて含まれていることを確認

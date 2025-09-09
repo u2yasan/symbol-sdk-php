@@ -36,11 +36,11 @@ class MerkleHashBuilder
      */
     public function final(): Hash256
     {
-        if (0 == count($this->_hashes)) {
+        if (0 === \count($this->_hashes)) {
             return new Hash256();
         }
 
-        $numRemainingHashes = count($this->_hashes);
+        $numRemainingHashes = \count($this->_hashes);
         while (1 < $numRemainingHashes) {
             $i = 0;
             while ($i < $numRemainingHashes) {

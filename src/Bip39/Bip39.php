@@ -16,7 +16,6 @@ declare(strict_types=1);
 namespace SymbolSdk\BIP39;
 
 use Error;
-use SymbolSdk\BIP39\BIP39JapaneseWordList;
 
 class BIP39
 {
@@ -48,18 +47,18 @@ class BIP39
     public static function entropyToMnemonic($entropy, BIP39WordList $wordList = null)
     {
         $bin = '';
-        $length = strlen($entropy);
+        $length = \strlen($entropy);
         for ($i = 0; $i < $length; $i++) {
-            $bin .= str_pad(decbin(ord($entropy[$i])), 8, '0', STR_PAD_LEFT);
+            $bin .= str_pad(decbin(\ord($entropy[$i])), 8, '0', STR_PAD_LEFT);
         }
         $bin = $bin . self::entropyChecksum($entropy);
-        if (strlen($bin) % 11 !== 0) {
+        if (\strlen($bin) % 11 !== 0) {
             throw new Error('Entropy length must be an even multiple of 11 bits');
         }
 
         $wordList = $wordList ?: self::defaultWordList();
 
-        for ($i = 0; $i < strlen($bin) / 11; $i++) {
+        for ($i = 0; $i < \strlen($bin) / 11; $i++) {
             $segment = substr($bin, $i * 11, 11);
             $wi = bindec($segment);
             $mnemonic[] = $wordList->getword($wi);
@@ -82,7 +81,7 @@ class BIP39
     protected static function entropyChecksum($entropy)
     {
         // calculate entropy
-        $ENT = strlen($entropy) * 8;
+        $ENT = \strlen($entropy) * 8;
         // calculate how long the checksum should be
         $CS = $ENT / 32;
 
@@ -126,7 +125,7 @@ class BIP39
     public static function normalizePassphrase($passphrase)
     {
         if (!class_exists('Normalizer')) {
-            if (mb_detect_encoding($passphrase) == "UTF-8") {
+            if (mb_detect_encoding($passphrase) === "UTF-8") {
                 throw new \Exception("UTF-8 passphrase is not supported without the PECL intl extension installed.");
             } else {
                 return $passphrase;
@@ -152,9 +151,9 @@ class BIP39
     private static function binaryToBits($binaryData)
     {
         $bits = '';
-        $length = strlen($binaryData);
+        $length = \strlen($binaryData);
         for ($i = 0; $i < $length; $i++) {
-            $bits .= str_pad(decbin(ord($binaryData[$i])), 8, '0', STR_PAD_LEFT);
+            $bits .= str_pad(decbin(\ord($binaryData[$i])), 8, '0', STR_PAD_LEFT);
         }
         return $bits;
     }

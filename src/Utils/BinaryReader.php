@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace SymbolSdk\Utils;
 
 use InvalidArgumentException;
-use OverflowException;
 
 class BinaryReader
 {
@@ -45,7 +44,7 @@ class BinaryReader
 
     public function setPosition(int $position): void
     {
-        if ($position < 0 || $position > strlen($this->binaryData)) {
+        if ($position < 0 || $position > \strlen($this->binaryData)) {
             throw new InvalidArgumentException('Invalid position.');
         }
         $this->position = $position;
@@ -64,11 +63,11 @@ class BinaryReader
 
     public function getLength(): int
     {
-        return strlen($this->binaryData);
+        return \strlen($this->binaryData);
     }
 
     public function getRemainingLength(): int
     {
-        return strlen($this->binaryData) - $this->position;
+        return \strlen($this->binaryData) - $this->position;
     }
 }

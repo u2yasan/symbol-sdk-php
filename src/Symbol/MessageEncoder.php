@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace SymbolSdk\Symbol;
 
-use SymbolSdk\CryptoTypes\PublicKey;
 use SymbolSdk\CryptoTypes\PrivateKey;
+use SymbolSdk\CryptoTypes\PublicKey;
 use SymbolSdk\Impl\CipherHelpers;
-use SymbolSdk\Symbol\KeyPair;
-use SymbolSdk\Symbol\SharedKeySymbol;
 use SymbolSdk\Utils\ArrayHelpers;
 use SymbolSdk\Utils\Converter;
 
@@ -61,7 +59,7 @@ class MessageEncoder
         }
 
         if ($encodedMessage[0] === 0xFE && ArrayHelpers::deepCompare(self::$DELEGATION_MARKER, substr($encodedMessage, 0, 8)) === 0) {
-            $ephemeralPublicKeyStart = strlen(self::$DELEGATION_MARKER);
+            $ephemeralPublicKeyStart = \strlen(self::$DELEGATION_MARKER);
             $ephemeralPublicKeyEnd = $ephemeralPublicKeyStart + PublicKey::$SIZE;
             $ephemeralPublicKey = new PublicKey(substr($encodedMessage, $ephemeralPublicKeyStart, $ephemeralPublicKeyEnd));
 

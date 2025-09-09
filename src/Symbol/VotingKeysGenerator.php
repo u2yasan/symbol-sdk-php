@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace SymbolSdk\Symbol;
 
 use SymbolSdk\CryptoTypes\PrivateKey;
-use SymbolSdk\Symbol\KeyPair;
 
 /**
  * Generates symbol voting keys.
@@ -51,7 +50,7 @@ class VotingKeysGenerator
 
         for ($i = 0; $i < $numEpochs; ++$i) {
             $identifier = $endEpoch - $i;
-            $childPrivateKey = call_user_func($this->_privateKeyGenerator);
+            $childPrivateKey = \call_user_func($this->_privateKeyGenerator);
             $childKeyPair = new KeyPair($childPrivateKey);
 
             $parentSignedPayloadBuffer = '';

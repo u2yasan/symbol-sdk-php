@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace SymbolSdk\Symbol;
 
-use SymbolSdk\Impl\Ed25519;
-use SymbolSdk\CryptoTypes\Signature;
-use SymbolSdk\Utils\ArrayHelpers;
-use SymbolSdk\Symbol\Models\PublicKey;
 use Error;
+use SymbolSdk\CryptoTypes\Signature;
+use SymbolSdk\Impl\Ed25519;
+use SymbolSdk\Symbol\Models\PublicKey;
+use SymbolSdk\Utils\ArrayHelpers;
 
 /**
  * Verifies signatures signed by a single key pair.
@@ -24,7 +24,7 @@ class Verifier
      */
     public function __construct(PublicKey $publicKey)
     {
-        if (0 == ArrayHelpers::deepCompare(str_repeat("\x00", 32), $publicKey->binaryData)) {
+        if (0 === ArrayHelpers::deepCompare(str_repeat("\x00", 32), $publicKey->binaryData)) {
             throw new Error('public key cannot be zero');
         }
         $this->publicKey = $publicKey;

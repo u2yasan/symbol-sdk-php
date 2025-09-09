@@ -36,7 +36,7 @@ final readonly class NodeHealthChecker
             $response = @file_get_contents($nodeInfoUrl, false, $context);
             if ($response !== false) {
                 $data = json_decode($response, true);
-                return is_array($data) && isset($data['publicKey']);
+                return \is_array($data) && isset($data['publicKey']);
             }
 
             if ($i < $this->maxRetries - 1) {

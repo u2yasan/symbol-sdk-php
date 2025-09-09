@@ -18,7 +18,7 @@ class Metadata
 
         // Get the first 8 bytes and set the high bit
         $keyBytes = substr($sha3Hash, 0, 8);
-        $keyBytes[7] = chr(ord($keyBytes[7]) | 0x80);
+        $keyBytes[7] = \chr(\ord($keyBytes[7]) | 0x80);
 
         // Convert to unsigned 64-bit integer (ulong in C#)
         $ulongKey = unpack('P', $keyBytes)[1];
@@ -42,14 +42,14 @@ class Metadata
             return $newValue;
         }
 
-        $shorterLength = min(strlen($oldValue), strlen($newValue));
-        $longerLength = max(strlen($oldValue), strlen($newValue));
-        $isNewValueShorter = strlen($oldValue) > strlen($newValue);
+        $shorterLength = min(\strlen($oldValue), \strlen($newValue));
+        $longerLength = max(\strlen($oldValue), \strlen($newValue));
+        $isNewValueShorter = \strlen($oldValue) > \strlen($newValue);
 
         $result = '';
 
         for ($i = 0; $i < $shorterLength; ++$i) {
-            $result .= chr(ord($oldValue[$i]) ^ ord($newValue[$i]));
+            $result .= \chr(\ord($oldValue[$i]) ^ \ord($newValue[$i]));
         }
 
         for (; $i < $longerLength; ++$i) {

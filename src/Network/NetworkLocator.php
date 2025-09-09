@@ -19,11 +19,11 @@ class NetworkLocator
      */
     public static function findByName($networks, $singleOrMultipleNames): Network
     {
-        $names = is_array($singleOrMultipleNames) ? $singleOrMultipleNames : [$singleOrMultipleNames];
+        $names = \is_array($singleOrMultipleNames) ? $singleOrMultipleNames : [$singleOrMultipleNames];
         $matchingNetwork = null;
 
         foreach ($networks as $network) {
-            if (in_array($network->name, $names)) {
+            if (\in_array($network->name, $names)) {
                 $matchingNetwork = $network;
                 break;
             }
@@ -44,11 +44,11 @@ class NetworkLocator
      */
     public static function findByIdentifier($networks, $singleOrMultipleIdentifiers): Network
     {
-        $identifiers = is_array($singleOrMultipleIdentifiers) ? $singleOrMultipleIdentifiers : [$singleOrMultipleIdentifiers];
+        $identifiers = \is_array($singleOrMultipleIdentifiers) ? $singleOrMultipleIdentifiers : [$singleOrMultipleIdentifiers];
         $matchingNetwork = null;
 
         foreach ($networks as $network) {
-            if (in_array($network->identifier, $identifiers)) {
+            if (\in_array($network->identifier, $identifiers)) {
                 $matchingNetwork = $network;
                 break;
             }

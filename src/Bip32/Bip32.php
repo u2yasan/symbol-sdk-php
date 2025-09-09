@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace SymbolSdk\Bip32;
 
-use SymbolSdk\Bip32\Bip32Node;
 use SymbolSdk\BIP39\BIP39;
-use SymbolSdk\BIP39\BIP39JapaneseWordList;
 use SymbolSdk\BIP39\BIP39EnglishWordList;
+use SymbolSdk\BIP39\BIP39JapaneseWordList;
 use SymbolSdk\BIP39\BIP39WordList;
 
 /**

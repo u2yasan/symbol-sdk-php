@@ -6,7 +6,7 @@ namespace SymbolSdk\Utils;
 
 use Exception;
 
-define('CONSTANTS', [
+\define('CONSTANTS', [
     'sizes' => [
         'ripemd160' => 20,
         'symbolAddressDecoded' => 24,
@@ -114,10 +114,10 @@ class Converter
     public static function addressToBinary($encoded)
     {
         $base32 = new Base2n(5, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567', false, true, true);
-        if (CONSTANTS['sizes']['symbolAddressEncoded'] == strlen($encoded)) {
+        if (CONSTANTS['sizes']['symbolAddressEncoded'] === \strlen($encoded)) {
             return substr($base32->decode($encoded . "A"), 0, -1);
         }
-        if (CONSTANTS['sizes']['nemAddressEncoded'] == strlen($encoded)) {
+        if (CONSTANTS['sizes']['nemAddressEncoded'] === \strlen($encoded)) {
             return mb_convert_encoding($encoded, 'UTF-8', 'ISO-8859-1');
         }
         throw new Exception("$encoded does not represent a valid encoded address");
@@ -126,12 +126,12 @@ class Converter
     public static function binaryToAddress($decoded)
     {
         $base32 = new Base2n(5, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567', false, true, true);
-        if (CONSTANTS['sizes']['symbolAddressDecoded'] == strlen($decoded)) {
+        if (CONSTANTS['sizes']['symbolAddressDecoded'] === \strlen($decoded)) {
             $padded = $decoded . "\x00";
             $encoded = $base32->encode($padded);
             return substr($encoded, 0, CONSTANTS['sizes']['symbolAddressEncoded']);
         }
-        if (CONSTANTS['sizes']['nemAddressDecoded'] == strlen($decoded)) {
+        if (CONSTANTS['sizes']['nemAddressDecoded'] === \strlen($decoded)) {
             return $base32->encode($decoded);
         }
         throw new Exception("invalid address type");
@@ -155,7 +155,7 @@ class Converter
     public static function arrayToString($array, $int = 0)
     {
         foreach ($array as $element) {
-            if ($int == 1) {
+            if ($int === 1) {
                 echo $element . ", ";
             } else {
                 foreach ($element as $e) {
@@ -196,7 +196,7 @@ class Converter
             throw new Exception("Invalid hexadecimal input");
         }
 
-        if (strlen($hexString) > 16) {
+        if (\strlen($hexString) > 16) {
             throw new Exception("Input exceeds 64-bit range");
         }
 

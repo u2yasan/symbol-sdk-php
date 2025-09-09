@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace SymbolSdk\Symbol;
 
-use SymbolSdk\Network\Network as BasicNetwork;
-use SymbolSdk\Symbol\Address;
-use SymbolSdk\Network\NetworkTimestampDatetimeConverter;
-use SymbolSdk\Symbol\NetworkTimestamp;
-use SymbolSdk\CryptoTypes\Hash256;
 use DateTime;
+use SymbolSdk\CryptoTypes\Hash256;
+use SymbolSdk\Network\Network as BasicNetwork;
+use SymbolSdk\Network\NetworkTimestampDatetimeConverter;
 use SymbolSdk\Symbol\Models\UnresolvedAddress;
 
 /**

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace SymbolSdk\Network;
 
+use DateTime;
 use ReflectionClass;
 use SymbolSdk\CryptoTypes\PublicKey;
-use SymbolSdk\Utils\Converter;
 use SymbolSdk\Symbol\Models;
-use DateTime;
+use SymbolSdk\Utils\Converter;
 
 /**
  * Represents a network.
@@ -69,7 +69,7 @@ class Network
         $version = $identifierBinary . $partTwoHash;
         $partThreeHash = hash($this->_addressHasher, $version, true);
         $checksum = substr($partThreeHash, 0, 4);
-        return call_user_func($this->_createAddress, $version, $checksum);
+        return \call_user_func($this->_createAddress, $version, $checksum);
     }
 
     /**
@@ -79,11 +79,11 @@ class Network
      */
     public function isValidAddressString(string $addressString): bool
     {
-        if ($this->_addressClass->getConstant('ENCODED_SIZE') !== strlen($addressString)) {
+        if ($this->_addressClass->getConstant('ENCODED_SIZE') !== \strlen($addressString)) {
             return false;
         }
 
-        for ($i = 0; $i < strlen($addressString); ++$i) {
+        for ($i = 0; $i < \strlen($addressString); ++$i) {
             if (strpos(self::BASE32_RFC4648_ALPHABET, $addressString[$i]) === false) {
                 return false;
             }
@@ -98,14 +98,14 @@ class Network
      */
     public function isValidAddress($address): bool
     {
-        if (Converter::binaryToInt($address->binaryData[0], 1) != $this->identifier) {
+        if (Converter::binaryToInt($address->binaryData[0], 1) !== $this->identifier) {
             return false;
         }
         $hash = hash($this->_addressHasher, substr($address->binaryData, 0, 1 + 20), true);
         $checkSumFromAddress = substr($address->binaryData, 1 + 20);
-        $calculatedChecksum = substr($hash, 0, strlen($checkSumFromAddress));
-        for ($i = 0; $i < strlen($checkSumFromAddress); ++$i) {
-            if ($checkSumFromAddress[$i] != $calculatedChecksum[$i]) {
+        $calculatedChecksum = substr($hash, 0, \strlen($checkSumFromAddress));
+        for ($i = 0; $i < \strlen($checkSumFromAddress); ++$i) {
+            if ($checkSumFromAddress[$i] !== $calculatedChecksum[$i]) {
                 return false;
             }
         }

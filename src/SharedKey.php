@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace SymbolSdk;
 
-use SymbolSdk\Impl\External\TweetNaclFastSymbol;
-use SymbolSdk\CryptoTypes\SharedKey256;
-use SymbolSdk\Utils\Converter;
 use Error;
+use SymbolSdk\CryptoTypes\SharedKey256;
+use SymbolSdk\Impl\External\TweetNaclFastSymbol;
+use SymbolSdk\Utils\Converter;
 
 class SharedKey
 {
@@ -23,7 +23,7 @@ class SharedKey
 
         // 0 != b if data[0] < 256 - 19
         $b = (0xED - 1 - $intArray[0]) >> 8;
-        return 0 != 1 - ($a & $b & 1);
+        return 0 !== 1 - ($a & $b & 1);
     }
 
     private static function isInMainSubgroup($point)

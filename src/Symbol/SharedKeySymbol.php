@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace SymbolSdk\Symbol;
 
-use SymbolSdk\SharedKey;
-use SymbolSdk\CryptoTypes\SharedKey256;
 use SymbolSdk\CryptoTypes\PublicKey;
+use SymbolSdk\CryptoTypes\SharedKey256;
+use SymbolSdk\SharedKey;
 
 class SharedKeySymbol
 {
@@ -19,6 +19,6 @@ class SharedKeySymbol
     public static function deriveSharedKey(KeyPair $keyPair, PublicKey $otherPublicKey): SharedKey256
     {
         $deriveSharedKeyImpl = SharedKey::deriveSharedKeyFactory('catapult', 'sha512');
-        return call_user_func($deriveSharedKeyImpl, $keyPair->privateKey()->binaryData, $otherPublicKey->binaryData);
+        return \call_user_func($deriveSharedKeyImpl, $keyPair->privateKey()->binaryData, $otherPublicKey->binaryData);
     }
 }

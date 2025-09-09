@@ -23,7 +23,7 @@ class CipherHelpers
 
     public static function encodeAesGcm(callable $deriveSharedKey, $keyPair, $recipientPublicKey, $message, $iv = null)
     {
-        $sharedKey = call_user_func($deriveSharedKey, $keyPair, $recipientPublicKey);
+        $sharedKey = \call_user_func($deriveSharedKey, $keyPair, $recipientPublicKey);
         $cipher = new AesGcmCipher($sharedKey);
         $initializationVector = $iv ?? openssl_random_pseudo_bytes(self::GCM_IV_SIZE);
         $cipherText = $cipher->encrypt($message, $initializationVector);
@@ -38,7 +38,7 @@ class CipherHelpers
     public static function decodeAesGcm($deriveSharedKey, $keyPair, $recipientPublicKey, $encodedMessage)
     {
         $decoded = self::decode(AesGcmCipher::TAG_SIZE, self::GCM_IV_SIZE, $encodedMessage);
-        $sharedKey = call_user_func($deriveSharedKey, $keyPair, $recipientPublicKey);
+        $sharedKey = \call_user_func($deriveSharedKey, $keyPair, $recipientPublicKey);
         $cipher = new AesGcmCipher($sharedKey);
         return $cipher->decrypt($decoded['encodedMessageData'] . $decoded['tag'], $decoded['initializationVector']);
     }

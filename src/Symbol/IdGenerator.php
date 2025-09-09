@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace SymbolSdk\Symbol;
 
 use Exception;
-use SymbolSdk\Symbol\Models;
 
-define('NAMESPACE_FLAG', 1 << 63);
+\define('NAMESPACE_FLAG', 1 << 63);
 
 class IdGenerator
 {
@@ -32,7 +31,7 @@ class IdGenerator
     {
         $result = 0;
         for ($i = 0; $i < 8; ++$i) {
-            $result += ord($digest[$i]) << (8 * $i);
+            $result += \ord($digest[$i]) << (8 * $i);
         }
         return $result;
     }
@@ -101,7 +100,7 @@ class IdGenerator
             return false;
         }
 
-        for ($i = 0; $i < strlen($name); ++$i) {
+        for ($i = 0; $i < \strlen($name); ++$i) {
             $ch = $name[$i];
             if (!$isAlphanum($ch) && $ch !== '_' && $ch !== '-') {
                 return false;
@@ -141,7 +140,7 @@ class IdGenerator
     public static function generateMosaicAliasId($fullyQualifiedName): int
     {
         $path = self::generateNamespacePath($fullyQualifiedName);
-        return $path[count($path) - 1];
+        return $path[\count($path) - 1];
     }
 
     private static function uint32ToBinary($num)

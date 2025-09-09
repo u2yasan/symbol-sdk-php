@@ -2,12 +2,11 @@
 
 namespace SymbolSdk\Impl\External;
 
-use SymbolSdk\Impl\External\Keccak;
-use SymbolSdk\Utils\Converter;
 use Error;
-use TypeError;
 use Exception;
 use SplFixedArray;
+use SymbolSdk\Utils\Converter;
+use TypeError;
 
 class TweetNaclFastSymbol
 {
@@ -46,7 +45,7 @@ class TweetNaclFastSymbol
         $r = array_fill(0, 16, 0); // 16要素の配列を0で初期化
 
         if ($init) {
-            for ($i = 0; $i < count($init); $i++) {
+            for ($i = 0; $i < \count($init); $i++) {
                 $r[$i] = $init[$i];
             }
         }
@@ -80,7 +79,7 @@ class TweetNaclFastSymbol
         $c = 1;
         for ($i = 0; $i < 16; $i++) {
             $v = $o[$i] + $c + 65535;
-            $c = intval($v / 65536);
+            $c = \intval($v / 65536);
             $o[$i] = $v - $c * 65536;
         }
         $o[0] += $c - 1 + 37 * ($c - 1);
@@ -685,14 +684,14 @@ class TweetNaclFastSymbol
 
     public static function crypto_hash(&$out, $m, $n, string $hasher)
     {
-        for ($i = 0; $i < count($m); $i++) {
+        for ($i = 0; $i < \count($m); $i++) {
             $m[$i] = pack('C*', $m[$i]);
         }
-        $binary = implode('', array_slice($m, 0, $n));
-        $hash = $hasher == 'sha512' ? hex2bin(hash('sha512', $binary)) : hex2bin(Keccak::hash($binary, 512));
+        $binary = implode('', \array_slice($m, 0, $n));
+        $hash = $hasher === 'sha512' ? hex2bin(hash('sha512', $binary)) : hex2bin(Keccak::hash($binary, 512));
 
-        for ($i = 0; $i < count($out); ++$i) {
-            $out[$i] = ord($hash[$i]);
+        for ($i = 0; $i < \count($out); ++$i) {
+            $out[$i] = \ord($hash[$i]);
         }
 
         return 0;
@@ -807,7 +806,7 @@ class TweetNaclFastSymbol
             $carry = 0;
             for ($j = $i - 32, $k = $i - 12; $j < $k; ++$j) {
                 $x[$j] += $carry - 16 * $x[$i] * self::$L[$j - ($i - 32)];
-                $carry = intval(($x[$j] + 128) / 256);
+                $carry = \intval(($x[$j] + 128) / 256);
                 $x[$j] -= $carry * 256;
             }
             $x[$j] += $carry;
@@ -863,7 +862,7 @@ class TweetNaclFastSymbol
             $sm[32 + $i] = $d[32 + $i];
         }
 
-        self::crypto_hash($r, array_slice($sm, 32), $n + 32, $hasher);
+        self::crypto_hash($r, \array_slice($sm, 32), $n + 32, $hasher);
         self::reduce($r);
         self::scalarbase($p, $r);
         self::pack($sm, $p);
@@ -887,7 +886,7 @@ class TweetNaclFastSymbol
             }
         }
 
-        $sliced = [array_slice($sm, 0, 32), array_slice($sm, 32)];
+        $sliced = [\array_slice($sm, 0, 32), \array_slice($sm, 32)];
         self::modL($sliced[1], $x);
         $sm = array_merge($sliced[0], $sliced[1]);
         return $smlen;
@@ -967,7 +966,7 @@ class TweetNaclFastSymbol
         self::reduce($h);
         self::scalarmult($p, $q, $h, true);
 
-        self::scalarbase($q, array_slice($sm, 32));
+        self::scalarbase($q, \array_slice($sm, 32));
         self::add($p, $q);
         self::pack($t, $p);
 
@@ -988,7 +987,7 @@ class TweetNaclFastSymbol
     public function is_array_string($array)
     {
         foreach ($array as $element) {
-            if (!is_string($element)) {
+            if (!\is_string($element)) {
                 return false;
             }
         }
@@ -998,7 +997,7 @@ class TweetNaclFastSymbol
     public static function checkArrayTypes(...$params)
     {
         foreach ($params as $param) {
-            if (!is_array($param)) {
+            if (!\is_array($param)) {
                 throw new TypeError('unexpected type, use array');
             }
         }
@@ -1009,11 +1008,11 @@ class TweetNaclFastSymbol
         $msg = Converter::binaryToArray($msg);
         $secretKey = Converter::binaryToArray($secretKey);
         self::checkArrayTypes($msg, $secretKey);
-        if (count($secretKey) !== self::$crypto_sign_SECRETKEYBYTES) {
+        if (\count($secretKey) !== self::$crypto_sign_SECRETKEYBYTES) {
             throw new Error('bad secret key size');
         }
-        $signedMsg = array_fill(0, self::$crypto_sign_BYTES + count($msg), 0);
-        self::crypto_sign($signedMsg, $msg, count($msg), $secretKey, $hasher);
+        $signedMsg = array_fill(0, self::$crypto_sign_BYTES + \count($msg), 0);
+        self::crypto_sign($signedMsg, $msg, \count($msg), $secretKey, $hasher);
         return $signedMsg;
     }
 
@@ -1021,7 +1020,7 @@ class TweetNaclFastSymbol
     {
         $signedMsg = self::nacl_sign($msg, $secretKey, $hasher);
         $sig = array_fill(0, self::$crypto_sign_BYTES, 0);
-        for ($i = 0; $i < count($sig); $i++) {
+        for ($i = 0; $i < \count($sig); $i++) {
             $sig[$i] = $signedMsg[$i];
         }
         return Converter::arrayToBinary($sig);
@@ -1032,7 +1031,7 @@ class TweetNaclFastSymbol
         $seed = Converter::binaryToArray($seed);
         self::checkArrayTypes($seed);
 
-        if (count($seed) !== self::$crypto_sign_SEEDBYTES) {
+        if (\count($seed) !== self::$crypto_sign_SEEDBYTES) {
             throw new Exception('bad seed size');
         }
 
@@ -1053,21 +1052,21 @@ class TweetNaclFastSymbol
         $sig = Converter::binaryToArray($sig);
         $publicKey = Converter::binaryToArray($publicKey);
         self::checkArrayTypes($msg, $sig, $publicKey);
-        if (count($sig) !== self::$crypto_sign_BYTES) {
+        if (\count($sig) !== self::$crypto_sign_BYTES) {
             throw new Error('bad signature size');
         }
-        if (count($publicKey) !== self::$crypto_sign_PUBLICKEYBYTES) {
+        if (\count($publicKey) !== self::$crypto_sign_PUBLICKEYBYTES) {
             throw new Error('bad public key size');
         }
-        $sm = array_fill(0, self::$crypto_sign_BYTES + count($msg), 0);
-        $m = array_fill(0, self::$crypto_sign_BYTES + count($msg), 0);
+        $sm = array_fill(0, self::$crypto_sign_BYTES + \count($msg), 0);
+        $m = array_fill(0, self::$crypto_sign_BYTES + \count($msg), 0);
         for ($i = 0; $i < self::$crypto_sign_BYTES; $i++) {
             $sm[$i] = $sig[$i];
         }
-        for ($i = 0; $i < count($msg); $i++) {
+        for ($i = 0; $i < \count($msg); $i++) {
             $sm[$i + self::$crypto_sign_BYTES] = $msg[$i];
         }
-        return (self::crypto_sign_open($m, $sm, count($sm), $publicKey, $hasher) >= 0);
+        return (self::crypto_sign_open($m, $sm, \count($sm), $publicKey, $hasher) >= 0);
     }
 }
 ?>

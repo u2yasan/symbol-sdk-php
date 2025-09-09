@@ -28,7 +28,7 @@ class NetworkTimestamp
      */
     public function isEpochal(): bool
     {
-        return 0 == $this->timestamp;
+        return 0 === $this->timestamp;
     }
 
     /**

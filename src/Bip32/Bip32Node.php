@@ -38,10 +38,10 @@ class Bip32Node
     {
         $childData = array_fill(0, 1 + PrivateKey::$SIZE + 4, 0);
         $childData[0] = 0;
-        $childData[count($childData) - 4] = 0x80;
+        $childData[\count($childData) - 4] = 0x80;
 
         for ($i = 0; 4 > $i; ++$i) {
-            $childData[count($childData) - 1 - $i] |= ($identifier >> (8 * $i)) & 0xFF;
+            $childData[\count($childData) - 1 - $i] |= ($identifier >> (8 * $i)) & 0xFF;
         }
 
         for ($i = 0; $i < PrivateKey::$SIZE; ++$i) {

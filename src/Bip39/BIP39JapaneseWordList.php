@@ -41,7 +41,7 @@ class BIP39JapaneseWordList extends BIP39WordList
         return $this->wordsFlipped[$word];
     }
 
-    protected $words = array(
+    protected $words = [
             "あいこくしん",
             "あいさつ",
             "あいだ",
@@ -2090,5 +2090,5 @@ class BIP39JapaneseWordList extends BIP39WordList
             "わすれもの",
             "わらう",
             "われる"
-    );
+    ];
 }

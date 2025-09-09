@@ -20,8 +20,8 @@ class BinaryWriter
 
     public function write(string $data): void
     {
-        $length = strlen($data);
-        if ($this->position + $length > strlen($this->binaryData)) {
+        $length = \strlen($data);
+        if ($this->position + $length > \strlen($this->binaryData)) {
             throw new OverflowException('Writing beyond the buffer size.');
         }
 
@@ -35,7 +35,7 @@ class BinaryWriter
     public function advance(int $length): void
     {
         $this->position += $length;
-        if ($this->position > strlen($this->binaryData)) {
+        if ($this->position > \strlen($this->binaryData)) {
             throw new OverflowException('Advancing beyond the buffer size.');
         }
     }
@@ -55,7 +55,7 @@ class BinaryWriter
 
     public function setPosition(int $position): void
     {
-        if ($position < 0 || $position > strlen($this->binaryData)) {
+        if ($position < 0 || $position > \strlen($this->binaryData)) {
             throw new InvalidArgumentException('Invalid position.');
         }
         $this->position = $position;
@@ -68,6 +68,6 @@ class BinaryWriter
 
     public function getRemainingLength(): int
     {
-        return strlen($this->binaryData) - $this->position;
+        return \strlen($this->binaryData) - $this->position;
     }
 }

@@ -41,7 +41,7 @@ class BIP39EnglishWordList extends BIP39WordList
         return $this->wordsFlipped[$word];
     }
 
-    protected $words = array(
+    protected $words = [
             "abandon",
             "ability",
             "able",
@@ -2090,5 +2090,5 @@ class BIP39EnglishWordList extends BIP39WordList
             "zero",
             "zone",
             "zoo"
-    );
+    ];
 }

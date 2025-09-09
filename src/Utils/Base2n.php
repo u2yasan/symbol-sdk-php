@@ -61,13 +61,13 @@ class Base2n
         $padCharacter = '='
     ) {
         // Ensure validity of $chars
-        if (!is_string($chars) || ($charLength = strlen($chars)) < 2) {
+        if (!\is_string($chars) || ($charLength = \strlen($chars)) < 2) {
             throw new InvalidArgumentException('$chars must be a string of at least two characters');
         }
 
         // Ensure validity of $padCharacter
         if ($padFinalGroup) {
-            if (!is_string($padCharacter) || !isset($padCharacter[0])) {
+            if (!\is_string($padCharacter) || !isset($padCharacter[0])) {
                 throw new InvalidArgumentException('$padCharacter must be a string of one character');
             }
 
@@ -83,7 +83,7 @@ class Base2n
         }
 
         // Ensure validity of $bitsPerCharacter
-        if (!is_int($bitsPerCharacter)) {
+        if (!\is_int($bitsPerCharacter)) {
             throw new InvalidArgumentException('$bitsPerCharacter must be an integer');
         }
 
@@ -132,7 +132,7 @@ class Base2n
     {
         // Unpack string into an array of bytes
         $bytes = unpack('C*', $rawString);
-        $byteCount = count($bytes);
+        $byteCount = \count($bytes);
 
         $encodedString = '';
         $byte = array_shift($bytes);
@@ -168,9 +168,9 @@ class Base2n
 
                     if ($padFinalGroup) {
                         // Array of the lowest common multiples of $bitsPerCharacter and 8, divided by 8
-                        $lcmMap = array(1 => 1, 2 => 1, 3 => 3, 4 => 1, 5 => 5, 6 => 3, 7 => 7, 8 => 1);
+                        $lcmMap = [1 => 1, 2 => 1, 3 => 3, 4 => 1, 5 => 5, 6 => 3, 7 => 7, 8 => 1];
                         $bytesPerGroup = $lcmMap[$bitsPerCharacter];
-                        $pads = $bytesPerGroup * $charsPerByte - ceil((strlen($rawString) % $bytesPerGroup) * $charsPerByte);
+                        $pads = $bytesPerGroup * $charsPerByte - ceil((\strlen($rawString) % $bytesPerGroup) * $charsPerByte);
                         $encodedString .= str_repeat($padCharacter, $pads);
                     }
 
@@ -210,7 +210,7 @@ class Base2n
      */
     public function decode($encodedString, $strict = false)
     {
-        if (!$encodedString || !is_string($encodedString)) {
+        if (!$encodedString || !\is_string($encodedString)) {
             // Empty string, nothing to decode
             return '';
         }
@@ -227,7 +227,7 @@ class Base2n
         if ($this->_charmap) {
             $charmap = $this->_charmap;
         } else {
-            $charmap = array();
+            $charmap = [];
 
             for ($i = 0; $i < $radix; $i++) {
                 $charmap[$chars[$i]] = $i;
@@ -237,7 +237,7 @@ class Base2n
         }
 
         // The last encoded character is $encodedString[$lastNotatedIndex]
-        $lastNotatedIndex = strlen($encodedString) - 1;
+        $lastNotatedIndex = \strlen($encodedString) - 1;
 
         // Remove trailing padding characters
         if ($padFinalGroup) {

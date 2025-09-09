@@ -127,7 +127,7 @@ final class Keccak
 
         for ($in_t = 0; $inlen >= $rsiz; $inlen -= $rsiz, $in_t += $rsiz) {
             for ($i = 0; $i < $rsizw; $i++) {
-                $t = unpack('V*', mb_substr($in_raw, intval($i * 8 + $in_t), 8, self::ENCODING));
+                $t = unpack('V*', mb_substr($in_raw, \intval($i * 8 + $in_t), 8, self::ENCODING));
 
                 $st[$i] = [
                     $st[$i][0] ^ $t[2],
@@ -140,8 +140,8 @@ final class Keccak
 
         $temp = mb_substr($in_raw, (int) $in_t, (int) $inlen, self::ENCODING);
         $temp = str_pad($temp, (int) $rsiz, "\x0", STR_PAD_RIGHT);
-        $temp = substr_replace($temp, chr($suffix), $inlen, 1);
-        $temp = substr_replace($temp, chr(ord($temp[intval($rsiz - 1)]) | 0x80), $rsiz - 1, 1);
+        $temp = substr_replace($temp, \chr($suffix), $inlen, 1);
+        $temp = substr_replace($temp, \chr(\ord($temp[\intval($rsiz - 1)]) | 0x80), $rsiz - 1, 1);
 
         for ($i = 0; $i < $rsizw; $i++) {
             $t = unpack('V*', mb_substr($temp, $i * 8, 8, self::ENCODING));
@@ -158,7 +158,7 @@ final class Keccak
         for ($i = 0; $i < 25; $i++) {
             $out .= $t = pack('V*', $st[$i][1], $st[$i][0]);
         }
-        $r = mb_substr($out, 0, intval($outputlength / 8), self::ENCODING);
+        $r = mb_substr($out, 0, \intval($outputlength / 8), self::ENCODING);
 
         return $raw_output ? $r : bin2hex($r);
     }
@@ -266,7 +266,7 @@ final class Keccak
 
         for ($in_t = 0; $inlen >= $rsiz; $inlen -= $rsiz, $in_t += $rsiz) {
             for ($i = 0; $i < $rsizw; $i++) {
-                $t = unpack('v*', mb_substr($in_raw, intval($i * 8 + $in_t), 8, self::ENCODING));
+                $t = unpack('v*', mb_substr($in_raw, \intval($i * 8 + $in_t), 8, self::ENCODING));
 
                 $st[$i] = [
                     $st[$i][0] ^ $t[4],
@@ -281,8 +281,8 @@ final class Keccak
 
         $temp = mb_substr($in_raw, (int) $in_t, (int) $inlen, self::ENCODING);
         $temp = str_pad($temp, (int) $rsiz, "\x0", STR_PAD_RIGHT);
-        $temp = substr_replace($temp, chr($suffix), $inlen, 1);
-        $temp = substr_replace($temp, chr((int) $temp[intval($rsiz - 1)] | 0x80), $rsiz - 1, 1);
+        $temp = substr_replace($temp, \chr($suffix), $inlen, 1);
+        $temp = substr_replace($temp, \chr((int) $temp[\intval($rsiz - 1)] | 0x80), $rsiz - 1, 1);
 
         for ($i = 0; $i < $rsizw; $i++) {
             $t = unpack('v*', mb_substr($temp, $i * 8, 8, self::ENCODING));
@@ -301,7 +301,7 @@ final class Keccak
         for ($i = 0; $i < 25; $i++) {
             $out .= $t = pack('v*', $st[$i][3], $st[$i][2], $st[$i][1], $st[$i][0]);
         }
-        $r = mb_substr($out, 0, intval($outputlength / 8), self::ENCODING);
+        $r = mb_substr($out, 0, \intval($outputlength / 8), self::ENCODING);
 
         return $raw_output ? $r : bin2hex($r);
     }
@@ -315,7 +315,7 @@ final class Keccak
 
     public static function hash($in, int $mdlen, bool $raw_output = false): string
     {
-        if (!in_array($mdlen, [224, 256, 384, 512], true)) {
+        if (!\in_array($mdlen, [224, 256, 384, 512], true)) {
             throw new Exception('Unsupported Keccak Hash output size.');
         }
 
@@ -324,7 +324,7 @@ final class Keccak
 
     public static function shake($in, int $security_level, int $outlen, bool $raw_output = false): string
     {
-        if (!in_array($security_level, [128, 256], true)) {
+        if (!\in_array($security_level, [128, 256], true)) {
             throw new Exception('Unsupported Keccak Shake security level.');
         }
 

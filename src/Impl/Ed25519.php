@@ -17,7 +17,7 @@ class Ed25519
         TweetNaclFastSymbol::reduce($reducedEncodedS);
 
         // Compare the first 32 bytes of $encodedS with $reducedEncodedS
-        return 0 === ArrayHelpers::deepCompare($encodedS, array_slice($reducedEncodedS, 0, 32));
+        return 0 === ArrayHelpers::deepCompare($encodedS, \array_slice($reducedEncodedS, 0, 32));
     }
 
     public static function keyPairFromSeed($seed, $hashMode)

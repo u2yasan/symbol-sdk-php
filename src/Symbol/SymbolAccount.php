@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace SymbolSdk\Symbol;
 
-use SymbolSdk\Facade\SymbolFacade;
-use SymbolSdk\Symbol\KeyPair;
-use SymbolSdk\Symbol\SymbolPublicAccount;
-use SymbolSdk\Symbol\MessageEncoder;
-use SymbolSdk\Symbol\Models;
 use SymbolSdk\CryptoTypes\Signature;
+use SymbolSdk\Facade\SymbolFacade;
 
 /**
  * Symbol account.

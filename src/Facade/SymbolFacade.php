@@ -5,24 +5,24 @@ declare(strict_types=1);
 namespace SymbolSdk\Facade;
 
 use DateTime;
-use SymbolSdk\Symbol\Network;
-use SymbolSdk\CryptoTypes\Signature;
-use SymbolSdk\CryptoTypes\PublicKey;
+use Exception;
 use SymbolSdk\CryptoTypes\Hash256;
 use SymbolSdk\CryptoTypes\PrivateKey;
+use SymbolSdk\CryptoTypes\PublicKey;
 use SymbolSdk\CryptoTypes\SharedKey256;
+use SymbolSdk\CryptoTypes\Signature;
+use SymbolSdk\Merkle\MerkleHashBuilder;
+use SymbolSdk\Network\NetworkLocator;
+use SymbolSdk\Symbol\Address;
+use SymbolSdk\Symbol\KeyPair;
 use SymbolSdk\Symbol\Models;
 use SymbolSdk\Symbol\Models\Hash256 as ModelsHash256;
-use SymbolSdk\Network\NetworkLocator;
-use SymbolSdk\Symbol\KeyPair;
-use SymbolSdk\Symbol\SymbolPublicAccount;
-use SymbolSdk\Symbol\SymbolAccount;
-use SymbolSdk\Symbol\Verifier;
-use SymbolSdk\Symbol\Address;
-use SymbolSdk\Symbol\SharedKeySymbol;
+use SymbolSdk\Symbol\Network;
 use SymbolSdk\Symbol\NetworkTimestamp;
-use SymbolSdk\Merkle\MerkleHashBuilder;
-use Exception;
+use SymbolSdk\Symbol\SharedKeySymbol;
+use SymbolSdk\Symbol\SymbolAccount;
+use SymbolSdk\Symbol\SymbolPublicAccount;
+use SymbolSdk\Symbol\Verifier;
 
 /**
  * Facade used to interact with Symbol blockchain.
@@ -66,9 +66,9 @@ class SymbolFacade
     {
         $TRANSACTION_HEADER_SIZE = 4 + 4 + Signature::$SIZE + PublicKey::$SIZE + 4;
         $transactionTypeOffset = $TRANSACTION_HEADER_SIZE + 2; // skip version and network byte
-        $transactionType = (ord($transactionBuffer[$transactionTypeOffset + 1]) << 8) + ord($transactionBuffer[$transactionTypeOffset]);
+        $transactionType = (\ord($transactionBuffer[$transactionTypeOffset + 1]) << 8) + \ord($transactionBuffer[$transactionTypeOffset]);
         $aggregateTypes = [Models\TransactionType::AGGREGATE_BONDED, Models\TransactionType::AGGREGATE_COMPLETE];
-        return in_array($transactionType, $aggregateTypes, true);
+        return \in_array($transactionType, $aggregateTypes, true);
     }
 
     private static function transactionDataBuffer(string $transactionBuffer): string
@@ -78,7 +78,7 @@ class SymbolFacade
         $dataBufferStart = $TRANSACTION_HEADER_SIZE;
         $dataBufferEnd = self::isAggregateTransaction($transactionBuffer)
             ? $TRANSACTION_HEADER_SIZE + $AGGREGATE_HASHED_SIZE
-            : strlen($transactionBuffer);
+            : \strlen($transactionBuffer);
         return substr($transactionBuffer, $dataBufferStart, $dataBufferEnd - $dataBufferStart);
     }
 
@@ -93,7 +93,7 @@ class SymbolFacade
     public function __construct($network)
     {
         Network::initialize();
-        $this->network = gettype($network) == 'string' ? NetworkLocator::findByName(Network::$NETWORKS, $network) : $network;
+        $this->network = \gettype($network) === 'string' ? NetworkLocator::findByName(Network::$NETWORKS, $network) : $network;
     }
 
     /**

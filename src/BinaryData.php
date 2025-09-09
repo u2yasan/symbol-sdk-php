@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace SymbolSdk;
 
-use SymbolSdk\Utils\Converter;
 use Exception;
 use RangeException;
+use SymbolSdk\Utils\Converter;
 
 /**
  * Represents a fixed size byte array.
@@ -31,8 +31,8 @@ class BinaryData
                 // Not in address format; ignoring without error.
             }
         }
-        if ($fixedSize !== strlen($binaryData)) {
-            throw new RangeException("Bytes was size " . strlen($binaryData) . " but must be $fixedSize");
+        if ($fixedSize !== \strlen($binaryData)) {
+            throw new RangeException("Bytes was size " . \strlen($binaryData) . " but must be $fixedSize");
         }
 
         $this->binaryData = $binaryData;
@@ -44,7 +44,7 @@ class BinaryData
      */
     public function __toString(): string
     {
-        if (get_class($this) == 'SymbolSdk\Symbol\Address' || get_class($this) == 'SymbolSdk\Symbol\Models\UnresolvedAddress') {
+        if (\get_class($this) === 'SymbolSdk\Symbol\Address' || \get_class($this) === 'SymbolSdk\Symbol\Models\UnresolvedAddress') {
             return Converter::binaryToAddress($this->binaryData);
         }
 
