@@ -110,6 +110,98 @@ final readonly class SymbolFacade
         ];
     }
 
+    /**
+     * Complete transfer workflow matching the test expectations
+     * 
+     * @param Account $sender The sender account
+     * @param string $recipientAddress The recipient address as string
+     * @param float $xymAmount Amount in XYM
+     * @param string $message Transaction message
+     * @param int $feeMultiplier Fee multiplier
+     * @return array Workflow data with transaction, announcementData, and summary
+     */
+    public function buildTransferWorkflow(
+        Account $sender,
+        string $recipientAddress,
+        float $xymAmount,
+        string $message = '',
+        int $feeMultiplier = 100
+    ): array {
+        // Validate non-negative amount
+        if ($xymAmount < 0) {
+            throw new \InvalidArgumentException(
+                sprintf('Amount cannot be negative. Got: %f', $xymAmount)
+            );
+        }
+
+        // Parse recipient address
+        $recipientAddr = $this->parseAddress($recipientAddress);
+        
+        // Create amount from XYM
+        $amount = $this->createAmount($xymAmount, true);
+        
+        // Create transfer transaction
+        $transaction = $this->createXymTransfer(
+            signerPublicKey: $sender->publicKey,
+            recipientAddress: $recipientAddr,
+            amount: $amount,
+            message: $message,
+            deadline: $this->createTimestamp(7200) // 2 hours deadline
+        );
+
+        // Set max fee
+        $transactionWithFee = $this->setMaxFee($transaction, $feeMultiplier);
+
+        // Sign transaction
+        $signedTransaction = $this->signTransaction($transactionWithFee, $sender);
+
+        // Get announcement data
+        $announcementData = $this->announceTransaction($signedTransaction);
+
+        // Format amount string
+        $formattedAmount = number_format($xymAmount, 2) . ' XYM';
+
+        // Create summary
+        $summary = [
+            'from' => $sender->address->toString(),
+            'to' => $recipientAddress,
+            'amount' => $formattedAmount,
+            'message' => $message,
+            'fee' => $announcementData['fee'],
+            'hash' => $announcementData['hash'],
+        ];
+
+        return [
+            'transaction' => $signedTransaction,
+            'announcementData' => $announcementData,
+            'summary' => $summary,
+        ];
+    }
+
+    /**
+     * Simplified transfer workflow for XYM transfers
+     *
+     * @param Account $senderAccount
+     * @param string $recipientAddress
+     * @param float $xymAmount Amount in XYM
+     * @param string $message
+     * @return array
+     */
+    public function buildXymTransferWorkflow(
+        Account $senderAccount,
+        string $recipientAddress,
+        float $xymAmount,
+        string $message = ''
+    ): array {
+        return $this->buildTransferWorkflow(
+            senderAccount: $senderAccount,
+            recipientAddress: $recipientAddress,
+            amount: $xymAmount,
+            message: $message,
+            isAmountInXym: true
+        );
+    }
+
     // === Utility Methods ===
 
     public function now(): Timestamp
