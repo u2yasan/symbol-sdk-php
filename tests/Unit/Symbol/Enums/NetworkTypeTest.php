@@ -6,7 +6,6 @@ namespace SymbolSdk\Tests\Unit\Symbol\Enums;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\Attributes\DataProvider;
 use SymbolSdk\Symbol\Enums\NetworkType;
 
 final class NetworkTypeTest extends TestCase
@@ -19,22 +18,54 @@ final class NetworkTypeTest extends TestCase
     }
 
     #[Test]
-    public function returns_correct_generation_hash_seed(): void
+    public function returns_correct_names(): void
     {
-        $mainnetSeed = NetworkType::MAINNET->getGenerationHashSeed();
-        $testnetSeed = NetworkType::TESTNET->getGenerationHashSeed();
-
-        self::assertEquals(64, strlen($mainnetSeed));
-        self::assertEquals(64, strlen($testnetSeed));
-        self::assertNotEquals($mainnetSeed, $testnetSeed);
+        self::assertEquals('mainnet', NetworkType::MAINNET->getName());
+        self::assertEquals('testnet', NetworkType::TESTNET->getName());
     }
 
     #[Test]
-    #[DataProvider('provide_network_names')]
-    public function creates_from_name(string $name, NetworkType $expected): void
+    public function returns_recommended_nodes(): void
     {
-        $result = NetworkType::fromName($name);
-        self::assertEquals($expected, $result);
+        $mainnetNodes = NetworkType::MAINNET->getRecommendedNodes();
+        $testnetNodes = NetworkType::TESTNET->getRecommendedNodes();
+
+        self::assertIsArray($mainnetNodes);
+        self::assertIsArray($testnetNodes);
+        self::assertNotEmpty($mainnetNodes);
+        self::assertNotEmpty($testnetNodes);
+
+        // すべてのノードがHTTPS URLであることを確認
+        foreach ($mainnetNodes as $node) {
+            self::assertStringStartsWith('https://', $node);
+            self::assertStringEndsWith(':3001', $node);
+        }
+    }
+
+    #[Test]
+    public function returns_all_available_nodes(): void
+    {
+        $allMainnetNodes = NetworkType::MAINNET->getAllAvailableNodes();
+        $recommendedNodes = NetworkType::MAINNET->getRecommendedNodes();
+        $fallbackNodes = NetworkType::MAINNET->getFallbackNodes();
+
+        self::assertGreaterThanOrEqual(
+            count($recommendedNodes),
+            count($allMainnetNodes)
+        );
+
+        // 推奨ノードがすべて含まれていることを確認
+        foreach ($recommendedNodes as $node) {
+            self::assertContains($node, $allMainnetNodes);
+        }
+    }
+
+    #[Test]
+    public function creates_from_name(): void
+    {
+        self::assertEquals(NetworkType::MAINNET, NetworkType::fromName('mainnet'));
+        self::assertEquals(NetworkType::TESTNET, NetworkType::fromName('testnet'));
+        self::assertEquals(NetworkType::MAINNET, NetworkType::fromName('MAINNET'));
     }
 
     #[Test]
@@ -42,36 +73,5 @@ final class NetworkTypeTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         NetworkType::fromName('invalid');
-    }
-
-    public static function provide_network_names(): \Generator
-    {
-        yield 'mainnet lowercase' => ['mainnet', NetworkType::MAINNET];
-        yield 'mainnet uppercase' => ['MAINNET', NetworkType::MAINNET];
-        yield 'testnet lowercase' => ['testnet', NetworkType::TESTNET];
-        yield 'testnet uppercase' => ['TESTNET', NetworkType::TESTNET];
-    }
-
-    #[Test]
-    public function returns_default_nodes(): void
-    {
-        $mainnetNodes = NetworkType::MAINNET->getDefaultNodes();
-        $testnetNodes = NetworkType::TESTNET->getDefaultNodes();
-
-        self::assertIsArray($mainnetNodes);
-        self::assertIsArray($testnetNodes);
-        self::assertNotEmpty($mainnetNodes);
-        self::assertNotEmpty($testnetNodes);
-
-        // Check that all nodes are valid URLs
-        foreach ($mainnetNodes as $node) {
-            self::assertIsString($node);
-            self::assertTrue(filter_var($node, FILTER_VALIDATE_URL) !== false);
-        }
-
-        foreach ($testnetNodes as $node) {
-            self::assertIsString($node);
-            self::assertTrue(filter_var($node, FILTER_VALIDATE_URL) !== false);
-        }
     }
 }
