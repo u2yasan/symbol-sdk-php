@@ -3128,63 +3128,87 @@ class BlockStatement
 
 readonly class AccountKeyLinkTransactionV1 extends Transaction
 {
-    public const TRANSACTION_VERSION = 1;
-    public const TRANSACTION_TYPE = TransactionType::ACCOUNT_KEY_LINK;
+    public function __construct(
+        NetworkType $network,
+        PublicKey $signerPublicKey,
+        Timestamp $deadline,
+        public PublicKey $linkedPublicKey,
+        public LinkAction $linkAction,
+        Amount $fee = new Amount(0),
+        ?Signature $signature = null,
+        int $version = 1,
+    ) {
+        parent::__construct(
+            $network,
+            TransactionType::ACCOUNT_KEY_LINK,
+            $signerPublicKey,
+            $deadline,
+            $fee,
+            $signature,
+            $version
+        );
+    }
 
     public function getSize(): int
     {
-        return 104 + // base transaction size
-               32 +  // linkedPublicKey (32 bytes)
-               1;    // linkAction (1 byte)
+        return 104 + // base transaction size (from Transaction.php design)
+               32 +  // linkedPublicKey (PublicKey size)
+               1;    // linkAction (LinkAction enum size)
     }
 
     public function serialize(): string
     {
-        $writer = new BinaryWriter($this->getSize());
+        // Transaction.phpベースの新しいシリアライゼーション
+        $data = '';
         
-        $writer->write(Converter::intToBinary($this->getSize(), 4));        // writeInt32
-        $writer->write(Converter::intToBinary(0, 4));                       // writeInt32 (reserved)
-        $writer->write($this->signature?->toBytes() ?? str_repeat("\0", 64));
-        $writer->write($this->signerPublicKey->toBytes());                 // Models\PublicKey::serialize()
-        $writer->write(Converter::intToBinary(0, 4));                       // writeInt32 (reserved)
-        $writer->write(Converter::intToBinary($this->version, 1));           // writeInt8
-        $writer->write(Converter::intToBinary($this->network->value, 1));    // writeInt8
-        $writer->write(Converter::intToBinary($this->type->value, 2));       // writeInt16
-        $writer->write(Converter::intToBinary($this->fee->toInt(), 8));      // writeInt64
-        $writer->write(Converter::intToBinary($this->deadline->toInt(), 8)); // writeInt64
+        // Transaction header (simplified for Transaction.php compatibility)
+        $data .= pack('V', $this->getSize());                    // size (4 bytes)
+        $data .= pack('V', 0);                                   // reserved (4 bytes)
+        $data .= $this->signature?->toBytes() ?? str_repeat("\0", 64); // signature (64 bytes)
+        $data .= $this->signerPublicKey->toBytes();              // signer public key (32 bytes)
+        $data .= pack('V', 0);                                   // reserved (4 bytes)
+        $data .= pack('C', $this->version);                      // version (1 byte)
+        $data .= pack('C', $this->network->value);               // network (1 byte)
+        $data .= pack('v', $this->type->value);                  // type (2 bytes)
+        $data .= pack('P', $this->fee->toInt());                 // fee (8 bytes)
+        $data .= pack('P', $this->deadline->toInt());            // deadline (8 bytes)
         
-        $writer->write($this->linkedPublicKey->serialize());                 // Models\PublicKey::serialize()
-        $writer->write(Converter::intToBinary($this->linkAction->value, 1)); // writeInt8
+        // AccountKeyLink specific fields
+        $data .= $this->linkedPublicKey->toBytes();              // linked public key (32 bytes)
+        $data .= pack('C', $this->linkAction->value);            // link action (1 byte)
         
-        return $writer->getBinaryData();
+        return bin2hex($data);
     }
 
     public static function deserialize(BinaryReader $reader): self
     {
-        // 新しいデシリアライゼーション実装
-        $size = Converter::binaryToInt($reader->read(4), 4);
-        $reader->readInt32(); // reserved
-        $signature = new Signature($reader->read(64));
-        $signerPublicKey = new PublicKey($reader->read(32));
-        $reader->readInt32(); // reserved
-        $version = $reader->readInt8();
-        $network = NetworkType::from($reader->readInt8());
-        $type = TransactionType::from($reader->readInt16());
-        $fee = new Amount($reader->readInt64());
-        $deadline = new Timestamp($reader->readInt64());
+        // Transaction.php compatible deserialization
+        $size = unpack('V', $reader->read(4))[1];
+        $reader->read(4); // skip reserved
+        $signatureBytes = $reader->read(64);
+        $signature = !empty(trim($signatureBytes, "\0")) ? Signature::fromBytes($signatureBytes) : null;
         
-        $linkedPublicKey = new PublicKey($reader->read(32));
-        $linkAction = LinkAction::from($reader->readInt8());
+        $signerPublicKey = PublicKey::fromBytes($reader->read(32));
+        $reader->read(4); // skip reserved
+        $version = unpack('C', $reader->read(1))[1];
+        $network = NetworkType::from(unpack('C', $reader->read(1))[1]);
+        $type = TransactionType::from(unpack('v', $reader->read(2))[1]);
+        $fee = new Amount(unpack('P', $reader->read(8))[1]);
+        $deadline = new Timestamp(unpack('P', $reader->read(8))[1]);
+        
+        // AccountKeyLink specific fields
+        $linkedPublicKey = PublicKey::fromBytes($reader->read(32));
+        $linkAction = LinkAction::from(unpack('C', $reader->read(1))[1]);
         
         return new self(
             $network,
             $signerPublicKey,
             $deadline,
+            $linkedPublicKey,
+            $linkAction,
             $fee,
             $signature,
-            $version,
-            $linkedPublicKey,
-            $linkAction
+            $version
         );
     }
 }
