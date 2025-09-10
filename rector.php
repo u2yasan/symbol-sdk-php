@@ -3,25 +3,48 @@
 declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
-use Rector\Set\ValueObject\LevelSetList;
-use Rector\Set\ValueObject\SetList;
+use Rector\Php81\Rector\FuncCall\NullToStrictStringFuncCallArgRector;
+use Rector\Php82\Rector\Class_\ReadOnlyClassRector;
+use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
+use Rector\TypeDeclaration\Rector\StmtsAwareInterface\DeclareStrictTypesRector;
+use Rector\CodeQuality\Rector\Class_\InlineConstructorDefaultToPropertyRector;
+use Rector\CodeQuality\Rector\ClassMethod\ReturnTypeFromStrictScalarReturnExprRector;
+use Rector\TypeDeclaration\Rector\Property\TypedPropertyFromStrictConstructorRector;
+use Rector\TypeDeclaration\Rector\ClassMethod\AddVoidReturnTypeWhereNoReturnRector;
+use Rector\Privatization\Rector\Property\ChangeReadOnlyPropertyWithDefaultValueToConstantRector;
+use Rector\Php80\Rector\Class_\ClassPropertyAssignToConstructorPromotionRector;
 
-return static function (RectorConfig $rectorConfig): void {
-    $rectorConfig->paths([
+return RectorConfig::configure()
+    ->withPaths([
         __DIR__ . '/src',
-        __DIR__ . '/tests',
+    ])
+    ->withPhpSets(
+        php83: true
+    )
+    ->withTypeCoverageLevel(0)
+    ->withDeadCodeLevel(0)
+    ->withCodeQualityLevel(0)
+    ->withRules([
+        // PHP 8.3 specific
+        AddOverrideAttributeToOverriddenMethodsRector::class,
+        
+        // Type declarations
+        DeclareStrictTypesRector::class,
+        TypedPropertyFromStrictConstructorRector::class,
+        AddVoidReturnTypeWhereNoReturnRector::class,
+        ReturnTypeFromStrictScalarReturnExprRector::class,
+        
+        // Constructor promotion
+        ClassPropertyAssignToConstructorPromotionRector::class,
+        InlineConstructorDefaultToPropertyRector::class,
+        
+        // ReadOnly optimizations
+        ReadOnlyClassRector::class,
+        ChangeReadOnlyPropertyWithDefaultValueToConstantRector::class,
+        
+        // Strict types
+        NullToStrictStringFuncCallArgRector::class,
+    ])
+    ->withSkip([
+        // Skipするルールがあれば追加
     ]);
-
-    $rectorConfig->sets([
-        LevelSetList::UP_TO_PHP_83,
-        SetList::CODE_QUALITY,
-        SetList::DEAD_CODE,
-        SetList::STRICT_BOOLEANS,
-        SetList::TYPE_DECLARATION,
-        SetList::EARLY_RETURN,
-        SetList::INSTANCEOF,
-        SetList::READONLY_PROPERTY,
-    ]);
-
-    $rectorConfig->phpstanConfig(__DIR__ . '/phpstan.neon');
-};
