@@ -37,9 +37,9 @@ class SymbolAccount extends SymbolPublicAccount
     /**
      * Signs a Symbol transaction.
      * @param Models\Transaction $transaction Transaction object.
-     * @return Signature Transaction signature.
+     * @return Models\Transaction Signed transaction.
      */
-    public function signTransaction(Models\Transaction $transaction): Signature
+    public function signTransaction(Models\Transaction $transaction): Models\Transaction
     {
         return $this->_facade->signTransaction($this->keyPair, $transaction);
     }
