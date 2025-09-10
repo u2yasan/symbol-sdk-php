@@ -3151,17 +3151,16 @@ readonly class AccountKeyLinkTransactionV1 extends Transaction
 
     public function getSize(): int
     {
-        return 104 + // base transaction size (from Transaction.php design)
-               32 +  // linkedPublicKey (PublicKey size)
-               1;    // linkAction (LinkAction enum size)
+        return 104 + // base transaction size
+               32 +  // linkedPublicKey
+               1;    // linkAction
     }
 
     public function serialize(): string
     {
-        // Transaction.phpベースの新しいシリアライゼーション
         $data = '';
         
-        // Transaction header (simplified for Transaction.php compatibility)
+        // Transaction header
         $data .= pack('V', $this->getSize());                    // size (4 bytes)
         $data .= pack('V', 0);                                   // reserved (4 bytes)
         $data .= $this->signature?->toBytes() ?? str_repeat("\0", 64); // signature (64 bytes)
@@ -3182,7 +3181,6 @@ readonly class AccountKeyLinkTransactionV1 extends Transaction
 
     public static function deserialize(BinaryReader $reader): self
     {
-        // Transaction.php compatible deserialization
         $size = unpack('V', $reader->read(4))[1];
         $reader->read(4); // skip reserved
         $signatureBytes = $reader->read(64);
