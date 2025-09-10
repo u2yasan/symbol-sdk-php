@@ -12,7 +12,8 @@ use SymbolSdk\Utils\ArrayHelpers;
 use SymbolSdk\Utils\BinaryReader;
 use SymbolSdk\Utils\BinaryWriter;
 use SymbolSdk\Utils\Converter;
-
+use SymbolSdk\Symbol\Enums\TransactionType;
+use SymbolSdk\Utils\TransactionFactory;
 class Amount extends BaseValue
 {
     public function __construct($amount = 0)
@@ -665,227 +666,6 @@ class NetworkType
     }
 }
 
-class TransactionType
-{
-    public const ACCOUNT_KEY_LINK = 16716;
-
-    public const NODE_KEY_LINK = 16972;
-
-    public const AGGREGATE_COMPLETE = 16705;
-
-    public const AGGREGATE_BONDED = 16961;
-
-    public const VOTING_KEY_LINK = 16707;
-
-    public const VRF_KEY_LINK = 16963;
-
-    public const HASH_LOCK = 16712;
-
-    public const SECRET_LOCK = 16722;
-
-    public const SECRET_PROOF = 16978;
-
-    public const ACCOUNT_METADATA = 16708;
-
-    public const MOSAIC_METADATA = 16964;
-
-    public const NAMESPACE_METADATA = 17220;
-
-    public const MOSAIC_DEFINITION = 16717;
-
-    public const MOSAIC_SUPPLY_CHANGE = 16973;
-
-    public const MOSAIC_SUPPLY_REVOCATION = 17229;
-
-    public const MULTISIG_ACCOUNT_MODIFICATION = 16725;
-
-    public const ADDRESS_ALIAS = 16974;
-
-    public const MOSAIC_ALIAS = 17230;
-
-    public const NAMESPACE_REGISTRATION = 16718;
-
-    public const ACCOUNT_ADDRESS_RESTRICTION = 16720;
-
-    public const ACCOUNT_MOSAIC_RESTRICTION = 16976;
-
-    public const ACCOUNT_OPERATION_RESTRICTION = 17232;
-
-    public const MOSAIC_ADDRESS_RESTRICTION = 16977;
-
-    public const MOSAIC_GLOBAL_RESTRICTION = 16721;
-
-    public const TRANSFER = 16724;
-
-    public $value;
-
-    public function __construct($value = 0)
-    {
-        $this->value = $value;
-    }
-
-    public static function valueToKey($value)
-    {
-        $values = [
-            16716, 16972, 16705, 16961, 16707, 16963, 16712, 16722, 16978, 16708, 16964, 17220, 16717, 16973, 17229, 16725, 16974, 17230,
-            16718, 16720, 16976, 17232, 16977, 16721, 16724
-        ];
-        $keys = [
-            'ACCOUNT_KEY_LINK', 'NODE_KEY_LINK', 'AGGREGATE_COMPLETE', 'AGGREGATE_BONDED', 'VOTING_KEY_LINK', 'VRF_KEY_LINK', 'HASH_LOCK',
-            'SECRET_LOCK', 'SECRET_PROOF', 'ACCOUNT_METADATA', 'MOSAIC_METADATA', 'NAMESPACE_METADATA', 'MOSAIC_DEFINITION',
-            'MOSAIC_SUPPLY_CHANGE', 'MOSAIC_SUPPLY_REVOCATION', 'MULTISIG_ACCOUNT_MODIFICATION', 'ADDRESS_ALIAS', 'MOSAIC_ALIAS',
-            'NAMESPACE_REGISTRATION', 'ACCOUNT_ADDRESS_RESTRICTION', 'ACCOUNT_MOSAIC_RESTRICTION', 'ACCOUNT_OPERATION_RESTRICTION',
-            'MOSAIC_ADDRESS_RESTRICTION', 'MOSAIC_GLOBAL_RESTRICTION', 'TRANSFER'
-        ];
-
-        $index = array_search($value, $values);
-        if ($index === false) {
-            throw new Exception("Invalid enum value: {$value}");
-        }
-
-        return $keys[$index];
-    }
-
-    public static function size()
-    {
-        return 2;
-    }
-
-    public static function deserialize(BinaryReader $reader): self
-    {
-        return new TransactionType(Converter::binaryToInt($reader->read(2), 2));
-    }
-
-    public function serialize(): string
-    {
-        return Converter::intToBinary($this->value, 2);
-    }
-
-    public function __toString()
-    {
-        return "TransactionType." . self::valueToKey($this->value);
-    }
-}
-
-class Transaction
-{
-    public ?Signature $signature;           // Models\Signature
-    public ?PublicKey $signerPublicKey;     // Models\PublicKey
-    public ?int $version;                   // int型に戻す
-    public ?NetworkType $network;           // Models\NetworkType
-    public ?TransactionType $type;          // Models\TransactionType
-    public ?Amount $fee;                    // Models\Amount
-    public ?Timestamp $deadline;            // Models\Timestamp
-
-    private int $verifiableEntityHeaderReserved_1 = 0; // reserved field
-
-    private int $entityBodyReserved_1 = 0; // reserved field
-
-    public function __construct(
-        ?Signature $signature = null,
-        ?PublicKey $signerPublicKey = null,
-        ?int $version = null,
-        ?NetworkType $network = null,
-        ?TransactionType $type = null,
-        ?Amount $fee = null,
-        ?Timestamp $deadline = null
-    ) {
-        $this->signature = $signature ?? new Signature();
-        $this->signerPublicKey = $signerPublicKey ?? new PublicKey();
-        $this->version = $version ?? 0;
-        $this->network = $network ?? new NetworkType();
-        $this->type = $type ?? new TransactionType();
-        $this->fee = $fee ?? new Amount();
-        $this->deadline = $deadline ?? new Timestamp();
-        $this->verifiableEntityHeaderReserved_1 = 0; // reserved field
-        $this->entityBodyReserved_1 = 0; // reserved field
-    }
-
-    public function sort()
-    {
-    }
-
-    public function size()
-    {
-        $size = 0;
-        $size += 4;
-        $size += 4;
-        $size += $this->signature->size();
-        $size += $this->signerPublicKey->size();
-        $size += 4;
-        $size += 1;
-        $size += $this->network->size();
-        $size += $this->type->size();
-        $size += $this->fee->size();
-        $size += $this->deadline->size();
-        return $size;
-    }
-
-    public static function _deserialize(BinaryReader &$reader, Transaction $instance): void
-    {
-        $size = Converter::binaryToInt($reader->read(4), 4);
-        $verifiableEntityHeaderReserved_1 = Converter::binaryToInt($reader->read(4), 4);
-        if (0 !== $verifiableEntityHeaderReserved_1) {
-            throw new OutOfRangeException('Invalid value of reserved field (' . $verifiableEntityHeaderReserved_1 . ')');
-        }
-        $signature = Signature::deserialize($reader);
-        $signerPublicKey = PublicKey::deserialize($reader);
-        $entityBodyReserved_1 = Converter::binaryToInt($reader->read(4), 4);
-        if (0 !== $entityBodyReserved_1) {
-            throw new OutOfRangeException('Invalid value of reserved field (' . $entityBodyReserved_1 . ')');
-        }
-        $version = Converter::binaryToInt($reader->read(1), 1);
-        $network = NetworkType::deserialize($reader);
-        $type = TransactionType::deserialize($reader);
-        $fee = Amount::deserialize($reader);
-        $deadline = Timestamp::deserialize($reader);
-
-        $instance->signature = $signature;
-        $instance->signerPublicKey = $signerPublicKey;
-        $instance->version = $version;
-        $instance->network = $network;
-        $instance->type = $type;
-        $instance->fee = $fee;
-        $instance->deadline = $deadline;
-    }
-
-    public function serialize(): string
-    {
-        $writer = new BinaryWriter($this->size());
-        $this->_serialize($writer);
-        return $writer->getBinaryData();
-    }
-
-    public function _serialize(BinaryWriter &$writer): void
-    {
-        $writer->write(Converter::intToBinary($this->size(), 4));
-        $writer->write(Converter::intToBinary($this->verifiableEntityHeaderReserved_1, 4));
-        $writer->write($this->signature->serialize());
-        $writer->write($this->signerPublicKey->serialize());
-        $writer->write(Converter::intToBinary($this->entityBodyReserved_1, 4));
-        $writer->write(Converter::intToBinary($this->version, 1));
-        $writer->write($this->network->serialize());
-        $writer->write($this->type->serialize());
-        $writer->write($this->fee->serialize());
-        $writer->write($this->deadline->serialize());
-    }
-
-    public function __toString()
-    {
-        $result = '';
-        $result .= 'signature: ' . $this->signature . ', ';
-        $result .= 'signerPublicKey: ' . $this->signerPublicKey . ', ';
-        $result .= 'version: ' . '0x' . Converter::intToHex($this->version, 1) . ', ';
-        $result .= 'network: ' . $this->network . ', ';
-        $result .= 'type: ' . $this->type . ', ';
-        $result .= 'fee: ' . $this->fee . ', ';
-        $result .= 'deadline: ' . $this->deadline . ', ';
-        return $result;
-    }
-
-    abstract public function getSize(): int;
-}
-
 class EmbeddedTransaction
 {
     public ?PublicKey $signerPublicKey;
@@ -909,7 +689,7 @@ class EmbeddedTransaction
         $this->signerPublicKey = $signerPublicKey ?? new PublicKey();
         $this->version = $version ?? 0;
         $this->network = $network ?? new NetworkType();
-        $this->type = $type ?? new TransactionType();
+        $this->type = $type ?? TransactionType::ACCOUNT_KEY_LINK;
         $this->embeddedTransactionHeaderReserved_1 = 0; // reserved field
         $this->entityBodyReserved_1 = 0; // reserved field
     }
@@ -927,7 +707,7 @@ class EmbeddedTransaction
         $size += 4;
         $size += 1;
         $size += $this->network->size();
-        $size += $this->type->size();
+        $size += 2; // TransactionTypeは2バイト
         return $size;
     }
 
@@ -945,7 +725,8 @@ class EmbeddedTransaction
         }
         $version = Converter::binaryToInt($reader->read(1), 1);
         $network = NetworkType::deserialize($reader);
-        $type = TransactionType::deserialize($reader);
+        $typeValue = Converter::binaryToInt($reader->read(2), 2);
+        $type = TransactionType::from($typeValue);
 
         $instance->signerPublicKey = $signerPublicKey;
         $instance->version = $version;
@@ -967,8 +748,8 @@ class EmbeddedTransaction
         $writer->write($this->signerPublicKey->serialize());
         $writer->write(Converter::intToBinary($this->entityBodyReserved_1, 4));
         $writer->write(Converter::intToBinary($this->version, 1));
-        $writer->write($this->network->serialize());
-        $writer->write($this->type->serialize());
+        $writer->write(Converter::intToBinary($this->type->value, 2));
+        $writer->write(Converter::intToBinary($this->type->value, 2));
     }
 
     public function __toString()
@@ -977,7 +758,7 @@ class EmbeddedTransaction
         $result .= 'signerPublicKey: ' . $this->signerPublicKey . ', ';
         $result .= 'version: ' . '0x' . Converter::intToHex($this->version, 1) . ', ';
         $result .= 'network: ' . $this->network . ', ';
-        $result .= 'type: ' . $this->type . ', ';
+        $result .= 'type: ' . ($this->type ? $this->type->name : 'null') . ', ';
         return $result;
     }
 }
@@ -3272,70 +3053,6 @@ class MosaicResolutionStatement
     }
 }
 
-class TransactionStatement
-{
-    public ?int $primaryId;
-
-    public ?int $secondaryId;
-
-    public ?array $receipts;
-
-    public function __construct(?int $primaryId = null, ?int $secondaryId = null, ?array $receipts = null)
-    {
-        $this->primaryId = $primaryId ?? 0;
-        $this->secondaryId = $secondaryId ?? 0;
-        $this->receipts = $receipts ?? [];
-    }
-
-    public function sort()
-    {
-    }
-
-    public function size()
-    {
-        $size = 0;
-        $size += 4;
-        $size += 4;
-        $size += 4;
-        $size += ArrayHelpers::size($this->receipts);
-        return $size;
-    }
-
-    public static function deserialize(BinaryReader $reader)
-    {
-        $instance = new TransactionStatement();
-
-        $primaryId = Converter::binaryToInt($reader->read(4), 4);
-        $secondaryId = Converter::binaryToInt($reader->read(4), 4);
-        $receiptCount = Converter::binaryToInt($reader->read(4), 4);
-        $receipts = ArrayHelpers::readArrayCount($reader, [ReceiptFactory::class, 'deserialize'], $receiptCount);
-
-        $instance->primaryId = $primaryId;
-        $instance->secondaryId = $secondaryId;
-        $instance->receipts = $receipts;
-        return $instance;
-    }
-
-    public function serialize(): string
-    {
-        $writer = new BinaryWriter($this->size());
-        $writer->write(Converter::intToBinary($this->primaryId, 4));
-        $writer->write(Converter::intToBinary($this->secondaryId, 4));
-        $writer->write(Converter::intToBinary(\count($this->receipts), 4)); // bound: receipt_count
-        ArrayHelpers::writeArray($writer, $this->receipts);
-        return $writer->getBinaryData();
-    }
-
-    public function __toString()
-    {
-        $result = '';
-        $result .= 'primaryId: ' . '0x' . Converter::intToHex($this->primaryId, 4) . ', ';
-        $result .= 'secondaryId: ' . '0x' . Converter::intToHex($this->secondaryId, 4) . ', ';
-        $result .= 'receipts: ' . '[' . implode(',', array_map(fn ($e) => $e, $this->receipts)) . ']' . ', ';
-        return $result;
-    }
-}
-
 class BlockStatement
 {
     public ?array $transactionStatements;
@@ -3409,92 +3126,66 @@ class BlockStatement
     }
 }
 
-class AccountKeyLinkTransactionV1 extends Transaction
+readonly class AccountKeyLinkTransactionV1 extends Transaction
 {
     public const TRANSACTION_VERSION = 1;
-
     public const TRANSACTION_TYPE = TransactionType::ACCOUNT_KEY_LINK;
 
-    public ?PublicKey $linkedPublicKey;
-
-    public ?LinkAction $linkAction;
-
-    public function __construct(
-        ?Signature $signature = null,
-        ?PublicKey $signerPublicKey = null,
-        ?NetworkType $network = null,
-        ?Amount $fee = null,
-        ?Timestamp $deadline = null,
-        ?PublicKey $linkedPublicKey = null,
-        ?LinkAction $linkAction = null
-    ) {
-        parent::__construct(
-            $signature,
-            $signerPublicKey,
-            AccountKeyLinkTransactionV1::TRANSACTION_VERSION,
-            $network,
-            new TransactionType(AccountKeyLinkTransactionV1::TRANSACTION_TYPE),
-            $fee,
-            $deadline,
-        );
-        // readonly classではconstructorでのみプロパティ設定可能
-        $this->linkedPublicKey = $linkedPublicKey ?? new PublicKey('0000000000000000000000000000000000000000000000000000000000000000');// デフォルト値
-        $this->linkAction = $linkAction ?? new LinkAction(LinkAction::UNLINK); // デフォルト値
-
-    }
-
-    public function sort()
-    {
-    }
-
-    public function size()
-    {
-        $size = 0;
-        $size += parent::size();
-        $size += $this->linkedPublicKey->size();
-        $size += $this->linkAction->size();
-        return $size;
-    }
     public function getSize(): int
     {
-        return $this->size(); // 既存のsize()メソッドを使用
-    }
-
-    public static function deserialize(BinaryReader $reader)
-    {
-        $instance = new AccountKeyLinkTransactionV1();
-
-        $size = Converter::binaryToInt($reader->read(4), 4);
-        $reader->retreat(4);
-        $reader = new BinaryReader($reader->read($size));
-        $reader->retreat($size);
-        Transaction::_deserialize($reader, $instance);
-        $linkedPublicKey = PublicKey::deserialize($reader);
-        $linkAction = LinkAction::deserialize($reader);
-
-        $instance->linkedPublicKey = $linkedPublicKey;
-        $instance->linkAction = $linkAction;
-        return $instance;
+        return 104 + // base transaction size
+               32 +  // linkedPublicKey (32 bytes)
+               1;    // linkAction (1 byte)
     }
 
     public function serialize(): string
     {
-        $writer = new BinaryWriter($this->size());
-        $this->sort();
-        parent::_serialize($writer);
-        $writer->write($this->linkedPublicKey->serialize());
-        $writer->write($this->linkAction->serialize());
+        $writer = new BinaryWriter($this->getSize());
+        
+        $writer->write(Converter::intToBinary($this->getSize(), 4));        // writeInt32
+        $writer->write(Converter::intToBinary(0, 4));                       // writeInt32 (reserved)
+        $writer->write($this->signature?->toBytes() ?? str_repeat("\0", 64));
+        $writer->write($this->signerPublicKey->toBytes());                 // Models\PublicKey::serialize()
+        $writer->write(Converter::intToBinary(0, 4));                       // writeInt32 (reserved)
+        $writer->write(Converter::intToBinary($this->version, 1));           // writeInt8
+        $writer->write(Converter::intToBinary($this->network->value, 1));    // writeInt8
+        $writer->write(Converter::intToBinary($this->type->value, 2));       // writeInt16
+        $writer->write(Converter::intToBinary($this->fee->toInt(), 8));      // writeInt64
+        $writer->write(Converter::intToBinary($this->deadline->toInt(), 8)); // writeInt64
+        
+        $writer->write($this->linkedPublicKey->serialize());                 // Models\PublicKey::serialize()
+        $writer->write(Converter::intToBinary($this->linkAction->value, 1)); // writeInt8
+        
         return $writer->getBinaryData();
     }
 
-    public function __toString()
+    public static function deserialize(BinaryReader $reader): self
     {
-        $result = '(';
-        $result .= parent::__toString();
-        $result .= 'linkedPublicKey: ' . $this->linkedPublicKey . ', ';
-        $result .= 'linkAction: ' . $this->linkAction . ', ';
-        $result .= ')';
-        return $result;
+        // 新しいデシリアライゼーション実装
+        $size = Converter::binaryToInt($reader->read(4), 4);
+        $reader->readInt32(); // reserved
+        $signature = new Signature($reader->read(64));
+        $signerPublicKey = new PublicKey($reader->read(32));
+        $reader->readInt32(); // reserved
+        $version = $reader->readInt8();
+        $network = NetworkType::from($reader->readInt8());
+        $type = TransactionType::from($reader->readInt16());
+        $fee = new Amount($reader->readInt64());
+        $deadline = new Timestamp($reader->readInt64());
+        
+        $linkedPublicKey = new PublicKey($reader->read(32));
+        $linkAction = LinkAction::from($reader->readInt8());
+        
+        return new self(
+            $network,
+            $signerPublicKey,
+            $deadline,
+            $fee,
+            $signature,
+            $version,
+            $linkedPublicKey,
+            $linkAction
+        );
     }
 }
 
@@ -8957,63 +8648,6 @@ class EmbeddedTransferTransactionV1 extends EmbeddedTransaction
         $result .= 'message: ' . 'hex(0x' . strtoupper(bin2hex($this->message)) . ')' . ', ';
         $result .= ')';
         return $result;
-    }
-}
-
-class TransactionFactory
-{
-    public static function toKey($values)
-    {
-        if (\count($values) === 1) {
-            return $values[0];
-        }
-
-        // assume each key is at most 32bits
-        return array_reduce(array_map('intval', $values), function ($accumulator, $value) {
-            return ($accumulator << 32) + $value;
-        }, 0);
-    }
-
-    public static function deserialize($binaryData)
-    {
-        $reader = new BinaryReader($binaryData);
-        $parent = new Transaction();
-        Transaction::_deserialize($reader, $parent);
-        $reader->setPosition(0);
-        $mapping = [
-        self::toKey([AccountKeyLinkTransactionV1::TRANSACTION_TYPE, AccountKeyLinkTransactionV1::TRANSACTION_VERSION]) => AccountKeyLinkTransactionV1::class,
-        self::toKey([NodeKeyLinkTransactionV1::TRANSACTION_TYPE, NodeKeyLinkTransactionV1::TRANSACTION_VERSION]) => NodeKeyLinkTransactionV1::class,
-        self::toKey([AggregateCompleteTransactionV1::TRANSACTION_TYPE, AggregateCompleteTransactionV1::TRANSACTION_VERSION]) => AggregateCompleteTransactionV1::class,
-        self::toKey([AggregateCompleteTransactionV2::TRANSACTION_TYPE, AggregateCompleteTransactionV2::TRANSACTION_VERSION]) => AggregateCompleteTransactionV2::class,
-        self::toKey([AggregateBondedTransactionV1::TRANSACTION_TYPE, AggregateBondedTransactionV1::TRANSACTION_VERSION]) => AggregateBondedTransactionV1::class,
-        self::toKey([AggregateBondedTransactionV2::TRANSACTION_TYPE, AggregateBondedTransactionV2::TRANSACTION_VERSION]) => AggregateBondedTransactionV2::class,
-        self::toKey([VotingKeyLinkTransactionV1::TRANSACTION_TYPE, VotingKeyLinkTransactionV1::TRANSACTION_VERSION]) => VotingKeyLinkTransactionV1::class,
-        self::toKey([VrfKeyLinkTransactionV1::TRANSACTION_TYPE, VrfKeyLinkTransactionV1::TRANSACTION_VERSION]) => VrfKeyLinkTransactionV1::class,
-        self::toKey([HashLockTransactionV1::TRANSACTION_TYPE, HashLockTransactionV1::TRANSACTION_VERSION]) => HashLockTransactionV1::class,
-        self::toKey([SecretLockTransactionV1::TRANSACTION_TYPE, SecretLockTransactionV1::TRANSACTION_VERSION]) => SecretLockTransactionV1::class,
-        self::toKey([SecretProofTransactionV1::TRANSACTION_TYPE, SecretProofTransactionV1::TRANSACTION_VERSION]) => SecretProofTransactionV1::class,
-        self::toKey([AccountMetadataTransactionV1::TRANSACTION_TYPE, AccountMetadataTransactionV1::TRANSACTION_VERSION]) => AccountMetadataTransactionV1::class,
-        self::toKey([MosaicMetadataTransactionV1::TRANSACTION_TYPE, MosaicMetadataTransactionV1::TRANSACTION_VERSION]) => MosaicMetadataTransactionV1::class,
-        self::toKey([NamespaceMetadataTransactionV1::TRANSACTION_TYPE, NamespaceMetadataTransactionV1::TRANSACTION_VERSION]) => NamespaceMetadataTransactionV1::class,
-        self::toKey([MosaicDefinitionTransactionV1::TRANSACTION_TYPE, MosaicDefinitionTransactionV1::TRANSACTION_VERSION]) => MosaicDefinitionTransactionV1::class,
-        self::toKey([MosaicSupplyChangeTransactionV1::TRANSACTION_TYPE, MosaicSupplyChangeTransactionV1::TRANSACTION_VERSION]) => MosaicSupplyChangeTransactionV1::class,
-        self::toKey([MosaicSupplyRevocationTransactionV1::TRANSACTION_TYPE, MosaicSupplyRevocationTransactionV1::TRANSACTION_VERSION]) => MosaicSupplyRevocationTransactionV1::class,
-        self::toKey([MultisigAccountModificationTransactionV1::TRANSACTION_TYPE, MultisigAccountModificationTransactionV1::TRANSACTION_VERSION]) => MultisigAccountModificationTransactionV1::class,
-        self::toKey([AddressAliasTransactionV1::TRANSACTION_TYPE, AddressAliasTransactionV1::TRANSACTION_VERSION]) => AddressAliasTransactionV1::class,
-        self::toKey([MosaicAliasTransactionV1::TRANSACTION_TYPE, MosaicAliasTransactionV1::TRANSACTION_VERSION]) => MosaicAliasTransactionV1::class,
-        self::toKey([NamespaceRegistrationTransactionV1::TRANSACTION_TYPE, NamespaceRegistrationTransactionV1::TRANSACTION_VERSION]) => NamespaceRegistrationTransactionV1::class,
-        self::toKey([AccountAddressRestrictionTransactionV1::TRANSACTION_TYPE, AccountAddressRestrictionTransactionV1::TRANSACTION_VERSION]) => AccountAddressRestrictionTransactionV1::class,
-        self::toKey([AccountMosaicRestrictionTransactionV1::TRANSACTION_TYPE, AccountMosaicRestrictionTransactionV1::TRANSACTION_VERSION]) => AccountMosaicRestrictionTransactionV1::class,
-        self::toKey([AccountOperationRestrictionTransactionV1::TRANSACTION_TYPE, AccountOperationRestrictionTransactionV1::TRANSACTION_VERSION]) => AccountOperationRestrictionTransactionV1::class,
-        self::toKey([MosaicAddressRestrictionTransactionV1::TRANSACTION_TYPE, MosaicAddressRestrictionTransactionV1::TRANSACTION_VERSION]) => MosaicAddressRestrictionTransactionV1::class,
-        self::toKey([MosaicGlobalRestrictionTransactionV1::TRANSACTION_TYPE, MosaicGlobalRestrictionTransactionV1::TRANSACTION_VERSION]) => MosaicGlobalRestrictionTransactionV1::class,
-        self::toKey([TransferTransactionV1::TRANSACTION_TYPE, TransferTransactionV1::TRANSACTION_VERSION]) => TransferTransactionV1::class,];
-        $discriminator = self::toKey([$parent->type->value, $parent->version]);
-        if (!\array_key_exists($discriminator, $mapping)) {
-            throw new Exception("Unknown Transaction type");
-        }
-        $factoryClass = $mapping[$discriminator];
-        return \call_user_func([$factoryClass, 'deserialize'], $reader);
     }
 }
 
