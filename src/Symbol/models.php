@@ -543,10 +543,7 @@ class UnresolvedMosaic
 
         $mosaicId = UnresolvedMosaicId::deserialize($reader);
         $amount = Amount::deserialize($reader);
-
-        $instance->mosaicId = $mosaicId;
-        $instance->amount = $amount;
-        return $instance;
+        return new UnresolvedMosaic($mosaicId, $amount);
     }
 
     public function serialize(): string
@@ -772,19 +769,13 @@ class TransactionType
 
 class Transaction
 {
-    public ?Signature $signature;
-
-    public ?PublicKey $signerPublicKey;
-
-    public ?int $version;
-
-    public ?NetworkType $network;
-
-    public ?TransactionType $type;
-
-    public ?Amount $fee;
-
-    public ?Timestamp $deadline;
+    public ?Signature $signature;           // Models\Signature
+    public ?PublicKey $signerPublicKey;     // Models\PublicKey
+    public ?int $version;                   // int型に戻す
+    public ?NetworkType $network;           // Models\NetworkType
+    public ?TransactionType $type;          // Models\TransactionType
+    public ?Amount $fee;                    // Models\Amount
+    public ?Timestamp $deadline;            // Models\Timestamp
 
     private int $verifiableEntityHeaderReserved_1 = 0; // reserved field
 
@@ -891,6 +882,8 @@ class Transaction
         $result .= 'deadline: ' . $this->deadline . ', ';
         return $result;
     }
+
+    abstract public function getSize(): int;
 }
 
 class EmbeddedTransaction
