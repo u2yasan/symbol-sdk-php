@@ -1,7 +1,27 @@
 parameters:
-    level: 1
+    level: 3
     paths:
-        - .
+        - src
     excludePaths:
         - vendor
         - build
+        - tests/bootstrap.php  # 必要に応じて
+    
+    # PHP 8.3+ 対応
+    phpVersion: 80300
+    
+    # 厳密なチェック
+    checkMissingIterableValueType: true
+    checkGenericClassInNonGenericObjectType: true
+    
+    # エラーを段階的に対応
+    reportUnmatchedIgnoredErrors: false
+    
+    # 暗号化ライブラリ特有の設定
+    stubFiles:
+        # 必要に応じて追加
+    
+    ignoreErrors:
+        # 一時的に無視するエラー（段階的に減らす）
+        - '#Unsafe usage of new static#'
+        # 他の一時的な無視項目
