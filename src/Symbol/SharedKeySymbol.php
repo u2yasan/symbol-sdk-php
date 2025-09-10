@@ -19,6 +19,12 @@ class SharedKeySymbol
     public static function deriveSharedKey(KeyPair $keyPair, PublicKey $otherPublicKey): SharedKey256
     {
         $deriveSharedKeyImpl = SharedKey::deriveSharedKeyFactory('catapult', 'sha512');
-        return \call_user_func($deriveSharedKeyImpl, $keyPair->privateKey()->binaryData, $otherPublicKey->binaryData);
+        
+        // 修正: binaryData -> toBytes()メソッドを使用
+        return \call_user_func(
+            $deriveSharedKeyImpl, 
+            $keyPair->privateKey()->toBytes(), 
+            $otherPublicKey->toBytes()
+        );
     }
 }

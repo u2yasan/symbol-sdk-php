@@ -8,13 +8,15 @@ use ArrayAccess;
 use OutOfRangeException;
 use RangeException;
 use SplFixedArray;
+use SymbolSdk\Utils\BinaryReader;
+use SymbolSdk\Utils\BinaryWriter;
 
 class ArrayHelpers
 {
     /**
      * Deeply compares two array elements.
-     * @param array|int lhs Left object to compare.
-     * @param array|int rhs Right object to compare.
+     * @param array|int $lhs Left object to compare.
+     * @param array|int $rhs Right object to compare.
      * @returns int 1 if lhs is greater than rhs; -1 if lhs is less than rhs; 0 if lhs and rhs are equal.
      */
     public static function deepCompare(array|int|string $lhs, array|int|string $rhs): int
@@ -24,7 +26,7 @@ class ArrayHelpers
                 return 0;
             }
 
-            if ($lhs < 0 || $rhs < 0) {
+            if ((is_numeric($lhs) && $lhs < 0) || (is_numeric($rhs) && $rhs < 0)) {
                 return $lhs < $rhs ? 1 : -1;
             } else {
                 return $lhs > $rhs ? 1 : -1;
@@ -83,8 +85,8 @@ class ArrayHelpers
 
     /**
      * Calculates aligned size.
-     * @param int size Size.
-     * @param int alignment Alignment.
+     * @param int $size Size.
+     * @param int $alignment Alignment.
      * @return int Size rounded up to alignment.
      */
     public static function alignUp(int $size, int $alignment): int
@@ -94,9 +96,9 @@ class ArrayHelpers
 
     /**
      * Calculates size of variable size objects.
-     * @param array elements Serializable elements.
-     * @param int alignment Alignment used for calculations.
-     * @param bool skipLastElementPadding \c true if last element should not be aligned.
+     * @param array $elements Serializable elements.
+     * @param int $alignment Alignment used for calculations.
+     * @param bool $skipLastElementPadding \c true if last element should not be aligned.
      * @return int Computed size.
      */
     public static function size($elements, $alignment = 0, $skipLastElementPadding = false): int
@@ -128,9 +130,9 @@ class ArrayHelpers
 
     /**
      * Reads array of objects.
-     * @param string bufferInput Buffer input.
-     * @param callable FactoryClass Factory used to deserialize objects.
-     * @param callable|null accessor Optional accessor used to check objects order.
+     * @param string $reader Buffer input.
+     * @param callable $factoryMethod FactoryClass Factory used to deserialize objects.
+     * @param callable|null $accessor Optional accessor used to check objects order.
      * @return array Array of deserialized objects.
      */
     public static function readArray($reader, callable $factoryMethod, $accessor = null): array
@@ -140,10 +142,10 @@ class ArrayHelpers
 
     /**
      * Reads array of deterministic number of objects.
-     * @param string bufferInput Buffer input.
-     * @param callable FactoryClass Factory used to deserialize objects.
-     * @param int count Number of object to deserialize.
-     * @param callable|null accessor Optional accessor used to check objects order.
+     * @param string $bufferInput Buffer input.
+     * @param callable $factoryMethod FactoryClass Factory used to deserialize objects.
+     * @param int $count Number of object to deserialize.
+     * @param callable|null $accessor Optional accessor used to check objects order.
      * @return array Array of deserialized objects.
      */
     public static function readArrayCount($bufferInput, callable $factoryMethod, $count, $accessor = null): array
@@ -155,10 +157,10 @@ class ArrayHelpers
 
     /**
      * Reads array of variable size objects.
-     * @param string bufferInput Buffer input.
-     * @param callable FactoryClass Factory used to deserialize objects.
-     * @param int alignment Alignment used to make sure each object is at boundary.
-     * @param bool skipLastElementPadding \c true if last element is not aligned/padded.
+     * @param BinaryReader $reader Binary reader input.
+     * @param callable $deserializeFunc FactoryClass Factory used to deserialize objects.
+     * @param int $alignment Alignment used to make sure each object is at boundary.
+     * @param bool $skipLastElementPadding \c true if last element is not aligned/padded.
      * @return array Array of deserialized objects.
      */
     public static function readVariableSizeElements(BinaryReader &$reader, callable $deserializeFunc, $binarySize, $alignment, $skipLastElementPadding = false)
@@ -190,9 +192,9 @@ class ArrayHelpers
 
     /**
      * Writes array of objects.
-     * @param BinaryWriter output Output sink.
-     * @param array elements Serializable elements.
-     * @param callable|null accessor Optional accessor used to check objects order.
+     * @param BinaryWriter $output Output sink.
+     * @param array $elements Serializable elements.
+     * @param callable|null $accessor Optional accessor used to check objects order.
      */
     public static function writeArray(BinaryWriter $output, array $elements, $accessor = null)
     {
@@ -204,10 +206,10 @@ class ArrayHelpers
 
     /**
      * Writes array of deterministic number of objects.
-     * @param BinaryWriter output Output sink.
-     * @param array elements Serializable elements.
-     * @param int count Number of objects to write.
-     * @param callable|null accessor Optional accessor used to check objects order.
+     * @param BinaryWriter $output Output sink.
+     * @param array $elements Serializable elements.
+     * @param int $count Number of objects to write.
+     * @param callable|null $accessor Optional accessor used to check objects order.
      */
     public static function writeArrayCount(BinaryWriter $output, array $elements, int $count, $accessor = null)
     {
@@ -219,10 +221,10 @@ class ArrayHelpers
 
     /**
      * Writes array of variable size objects.
-     * @param BinaryWriter output Output sink.
-     * @param array elements Serializable elements.
-     * @param int alignment Alignment used to make sure each object is at boundary.
-     * @param bool skipLastElementPadding \c true if last element should not be aligned/padded.
+     * @param BinaryWriter $output Output sink.
+     * @param array $elements Serializable elements.
+     * @param int $alignment Alignment used to make sure each object is at boundary.
+     * @param bool $skipLastElementPadding \c true if last element should not be aligned/padded.
      */
     public static function writeVariableSizeElements(BinaryWriter $output, array $elements, int $alignment, $skipLastElementPadding = false)
     {

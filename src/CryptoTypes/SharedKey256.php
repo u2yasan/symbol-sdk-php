@@ -17,7 +17,7 @@ class SharedKey256 extends BinaryData
 
     /**
      * Creates a shared key from bytes or a hex string.
-     * @param string sharedKey Input string or byte array.
+     * @param string $sharedKey Input string or byte array.
      */
     public function __construct(string $sharedKey)
     {

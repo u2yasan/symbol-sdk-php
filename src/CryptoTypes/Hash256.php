@@ -17,7 +17,7 @@ class Hash256 extends BinaryData
 
     /**
      * Creates a hash from bytes or a hex string.
-     * @param string hash256 Input string or byte array.
+     * @param string $hash256 Input string or byte array.
      */
     public function __construct(string $hash256)
     {

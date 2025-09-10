@@ -27,7 +27,7 @@ class BaseValue
     /**
      * Creates a base value.
      * @param int $size Size of the integer.
-     * @param int|float|string $value Value.
+     * @param int|string $value.
      */
     public function __construct(int $size, int|string $value)
     {

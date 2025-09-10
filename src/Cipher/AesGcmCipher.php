@@ -17,7 +17,7 @@ class AesGcmCipher
 
     /**
      * Creates a cipher around an aes shared key.
-     * @param SharedKey256 aesKey AES shared key.
+     * @param SharedKey256 $key aesKey AES shared key.
      */
     public function __construct(SharedKey256 $key)
     {
@@ -26,8 +26,8 @@ class AesGcmCipher
 
     /**
      * Encrypts clear text and appends tag to encrypted payload.
-     * @param string clearText Clear text to encrypt.
-     * @param string iv IV bytes.
+     * @param string $clearText Clear text to encrypt.
+     * @param string $iv IV bytes.
      * @return string Cipher text with appended tag.
      */
     public function encrypt(string $clearText, string $iv): string
@@ -39,8 +39,8 @@ class AesGcmCipher
 
     /**
      * Decrypts cipher text with appended tag.
-     * @param string cipherText Cipher text with appended tag to decrypt.
-     * @param string iv IV bytes.
+     * @param string $cipherText Cipher text with appended tag to decrypt.
+     * @param string $iv IV bytes.
      * @return string Clear text.
      */
     public function decrypt(string $cipherText, string $iv): string

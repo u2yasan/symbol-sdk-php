@@ -15,22 +15,23 @@ use SymbolSdk\Impl\Ed25519;
 class KeyPair
 {
     public const HASH_MODE = 'sha512';
-    private $_privateKey;
-    private $_keyPair;
+    private PrivateKey $_privateKey;
+    private array $_keyPair;
 
     /**
      * Creates a key pair from a private key.
-     * @param PrivateKey privateKey Private key.
+     * @param PrivateKey $privateKey Private key.
      */
     public function __construct(PrivateKey $privateKey)
     {
         $this->_privateKey = $privateKey;
-        $this->_keyPair = Ed25519::keyPairFromSeed($privateKey->binaryData, self::HASH_MODE);
+        // 修正: binaryData -> toBytes() メソッドを使用
+        $this->_keyPair = Ed25519::keyPairFromSeed($privateKey->toBytes(), self::HASH_MODE);
     }
 
     /**
      * Signs a message with the private key.
-     * @param string message Message to sign.
+     * @param string $message Message to sign.
      * @return Signature Message signature.
      */
     public function sign(string $message): Signature

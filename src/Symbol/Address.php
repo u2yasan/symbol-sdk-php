@@ -16,7 +16,7 @@ class Address extends BinaryData
 
     /**
      * Creates a Symbol address.
-     * @param string|Address addressInput Input string, byte array or address.
+     * @param string|Address $addressInput Input string, byte array or address.
      */
     public function __construct($addressInput)
     {
@@ -45,7 +45,7 @@ class Address extends BinaryData
 
     /**
      * Creates an address from a decoded address hex string (typically from REST).
-     * @param string hexString Decoded address hex string.
+     * @param string $hexString Decoded address hex string.
      * @return Address Equivalent address.
      */
     public static function fromDecodedAddressHexString($hexString)
@@ -55,8 +55,8 @@ class Address extends BinaryData
 
     /**
      * Creates an address from a namespace id.
-     * @param NamespaceId namespaceId Namespace id.
-     * @param int networkIdentifier Network identifier byte.
+     * @param NamespaceId $namespaceId Namespace id.
+     * @param int $networkIdentifier Network identifier byte.
      * @return Address Address referencing namespace id.
      */
     public static function fromNamespaceId(NamespaceId $namespaceId, int $networkIdentifier)

@@ -8,8 +8,8 @@ class Metadata
 {
     /**
      * Generate metadata generate key from seed.
-     * @param string $seed Seed value.
-     * @return string Metadata generate key.
+     * @param string $str Seed value.
+     * @return int Metadata generate key.
      */
     public static function metadataGenerateKey(string $str): int
     {

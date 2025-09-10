@@ -38,11 +38,11 @@ class IdGenerator
 
     /**
      * モザイクIDを生成
-     * @param string $ownerAddressBytes
+     * @param Address|Models\UnresolvedAddress|Models\Address $ownerAddress Bytes
      * @param int $nonce
-     * @return int
+     * @return array{nonce: int, id: int}
      */
-    public static function generateMosaicId(Address|Models\UnresolvedAddress|Models\Address $ownerAddress, int $nonce = null)
+    public static function generateMosaicId(Address|Models\UnresolvedAddress|Models\Address $ownerAddress, ?int $nonce = null)
     {
         // SHA3-256の初期化
         $hasher = hash_init('sha3-256');
@@ -53,7 +53,23 @@ class IdGenerator
         hash_update($hasher, pack('C*', ...$nonceBytes));
 
         // 所有者のアドレスバイトをハッシュに追加
-        hash_update($hasher, $ownerAddress->binaryData);
+        $addressBytes = null;
+        
+        // メソッドの存在をチェックして適切な方法を選択
+        if (method_exists($ownerAddress, 'toBytes')) {
+            $addressBytes = $ownerAddress->toBytes();
+        } elseif (method_exists($ownerAddress, 'getBinaryData')) {
+            $addressBytes = $ownerAddress->getBinaryData();
+        } elseif (property_exists($ownerAddress, 'binaryData')) {
+            $addressBytes = $ownerAddress->binaryData;
+        } elseif (method_exists($ownerAddress, 'serialize')) {
+            $addressBytes = $ownerAddress->serialize();
+        } else {
+            // 最後の手段として文字列キャスト
+            $addressBytes = (string)$ownerAddress;
+        }
+        
+        hash_update($hasher, $addressBytes);
 
         // ハッシュの計算
         $digest = hash_final($hasher, true);
@@ -69,11 +85,11 @@ class IdGenerator
 
     /**
      * Generates a namespace id from a name and an optional parent namespace id.
-     * @param string name Namespace name.
-     * @param int parentNamespaceId Parent namespace id.
-     * @return string Computed namespace id.
+     * @param string $name Namespace name.
+     * @param int $parentNamespaceId Parent namespace id.
+     * @return int Computed namespace id.  // string から int に変更
      */
-    public static function generateNamespaceId(string $name, int $parentNamespaceId = 0): string
+    public static function generateNamespaceId(string $name, int $parentNamespaceId = 0): int
     {
         $hasher = hash_init('sha3-256');
         hash_update($hasher, self::uint32ToBinary($parentNamespaceId & 0xFFFFFFFF));
@@ -87,7 +103,7 @@ class IdGenerator
 
     /**
      * Returns true if a name is a valid namespace name.
-     * @param string name Namespace name to check.
+     * @param string $name Namespace name to check.
      * @return bool true if the specified name is valid.
      */
     public static function isValidNamespaceName(string $name): bool
@@ -112,7 +128,7 @@ class IdGenerator
 
     /**
      * Parses a fully qualified namespace name into a path.
-     * @param string fullyQualifiedName Fully qualified namespace name.
+     * @param string $fullyQualifiedName Fully qualified namespace name.
      * @return array Computed namespace path.
      */
     public static function generateNamespacePath(string $fullyQualifiedName): array
@@ -134,7 +150,7 @@ class IdGenerator
 
     /**
      * Generates a mosaic id from a fully qualified mosaic alias name.
-     * @param string fullyQualifiedName Fully qualified mosaic name.
+     * @param string $fullyQualifiedName Fully qualified mosaic name.
      * @return int Computed mosaic id.
      */
     public static function generateMosaicAliasId($fullyQualifiedName): int

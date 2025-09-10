@@ -25,10 +25,10 @@ class Network extends BasicNetwork
 
     /**
      * Creates a new network with the specified name, identifier byte and generation hash seed.
-     * @param string name Network name.
-     * @param int identifier Network identifier byte.
-     * @param DateTime epochTime Network epoch time.
-     * @param Hash256 generationHashSeed Network generation hash seed.
+     * @param string $name Network name.
+     * @param int $identifier Network identifier byte.
+     * @param DateTime $epochTime Network epoch time.
+     * @param Hash256 $generationHashSeed Network generation hash seed.
      */
     public function __construct(string $name, int $identifier, DateTime $epochTime, Hash256 $generationHashSeed)
     {

@@ -22,7 +22,7 @@ class Converter
 {
     /**
      * Converts siez to format
-     * @param int bytes size.
+     * @param int $size byte.
      * @return string format for pack and unpack.
      */
     public static function sizeToFormat($size, $isReverse = false)
@@ -58,8 +58,8 @@ class Converter
 
     /**
      * hex of binary to int
-     * @param string hex of binary
-     * @param int size of binary
+     * @param string $binaryHex of binary
+     * @param int $size size of binary
      * @return int culclated int from hex of binary
      */
     public static function hexToInt($binaryHex, $size)
@@ -92,8 +92,8 @@ class Converter
 
     /**
      * int to hex of binary
-     * @param int int
-     * @param int size of binary
+     * @param int $int
+     * @param int $size of binary
      * @return string hex of binary
      */
     public static function intToHex($int, $size, $isReverse = false)

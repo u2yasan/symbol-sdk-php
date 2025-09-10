@@ -536,7 +536,10 @@ class UnresolvedMosaic
 
     public static function deserialize(BinaryReader $reader)
     {
-        $instance = new UnresolvedMosaic();
+        $instance = new UnresolvedMosaic(
+            new UnresolvedMosaicId(0),
+            new Amount(0)
+        );
 
         $mosaicId = UnresolvedMosaicId::deserialize($reader);
         $amount = Amount::deserialize($reader);
@@ -3441,8 +3444,10 @@ class AccountKeyLinkTransactionV1 extends Transaction
             $fee,
             $deadline,
         );
-        $this->linkedPublicKey = $linkedPublicKey ?? new PublicKey();
-        $this->linkAction = $linkAction ?? new LinkAction();
+        // readonly classではconstructorでのみプロパティ設定可能
+        $this->linkedPublicKey = $linkedPublicKey ?? new PublicKey('0000000000000000000000000000000000000000000000000000000000000000');// デフォルト値
+        $this->linkAction = $linkAction ?? new LinkAction(LinkAction::UNLINK); // デフォルト値
+
     }
 
     public function sort()
@@ -3456,6 +3461,10 @@ class AccountKeyLinkTransactionV1 extends Transaction
         $size += $this->linkedPublicKey->size();
         $size += $this->linkAction->size();
         return $size;
+    }
+    public function getSize(): int
+    {
+        return $this->size(); // 既存のsize()メソッドを使用
     }
 
     public static function deserialize(BinaryReader $reader)
@@ -8764,8 +8773,8 @@ class TransferTransactionV1 extends Transaction
             $this->mosaics,
             fn ($lhs, $rhs) =>
             ArrayHelpers::deepCompare(
-                isset($lhs->mosaicId->comparer) ? $lhs->mosaicId->comparer() : $lhs->mosaicId->value,
-                isset($rhs->mosaicId->comparer) ? $rhs->mosaicId->comparer() : $rhs->mosaicId->value
+                method_exists($lhs->mosaicId, 'comparer') ? $lhs->mosaicId->comparer() : $lhs->mosaicId->value,
+                method_exists($rhs->mosaicId, 'comparer') ? $rhs->mosaicId->comparer() : $rhs->mosaicId->value
             )
         );
     }
@@ -8804,7 +8813,7 @@ class TransferTransactionV1 extends Transaction
         if (0 !== $transferTransactionBodyReserved_2) {
             throw new OutOfRangeException('Invalid value of reserved field (' . $transferTransactionBodyReserved_2 . ')');
         }
-        $mosaics = ArrayHelpers::readArrayCount($reader, [UnresolvedMosaic::class, 'deserialize'], $mosaicsCount, fn ($e) => isset($e->mosaicId->comparer) ? $e->mosaicId->comparer() : $e->mosaicId->value);
+        $mosaics = ArrayHelpers::readArrayCount($reader, [UnresolvedMosaic::class, 'deserialize'], $mosaicsCount, fn ($e) => method_exists($e->mosaicId, 'comparer') ? $e->mosaicId->comparer() : $e->mosaicId->value);
         $message = $reader->read($messageSize);
 
         $instance->recipientAddress = $recipientAddress;
@@ -8823,7 +8832,7 @@ class TransferTransactionV1 extends Transaction
         $writer->write(Converter::intToBinary(\count($this->mosaics), 1)); // bound: mosaics_count
         $writer->write(Converter::intToBinary($this->transferTransactionBodyReserved_1, 1));
         $writer->write(Converter::intToBinary($this->transferTransactionBodyReserved_2, 4));
-        ArrayHelpers::writeArray($writer, $this->mosaics, fn ($e) => isset($e->mosaicId->comparer) ? $e->mosaicId->comparer() : $e->mosaicId->value);
+        ArrayHelpers::writeArray($writer, $this->mosaics, fn ($e) => method_exists($e->mosaicId, 'comparer') ? $e->mosaicId->comparer() : $e->mosaicId->value);
         $writer->write($this->message);
         return $writer->getBinaryData();
     }
@@ -8882,8 +8891,8 @@ class EmbeddedTransferTransactionV1 extends EmbeddedTransaction
             $this->mosaics,
             fn ($lhs, $rhs) =>
             ArrayHelpers::deepCompare(
-                isset($lhs->mosaicId->comparer) ? $lhs->mosaicId->comparer() : $lhs->mosaicId->value,
-                isset($rhs->mosaicId->comparer) ? $rhs->mosaicId->comparer() : $rhs->mosaicId->value
+                method_exists($lhs->mosaicId, 'comparer') ? $lhs->mosaicId->comparer() : $lhs->mosaicId->value,
+                method_exists($rhs->mosaicId, 'comparer') ? $rhs->mosaicId->comparer() : $rhs->mosaicId->value
             )
         );
     }
@@ -8922,7 +8931,7 @@ class EmbeddedTransferTransactionV1 extends EmbeddedTransaction
         if (0 !== $transferTransactionBodyReserved_2) {
             throw new OutOfRangeException('Invalid value of reserved field (' . $transferTransactionBodyReserved_2 . ')');
         }
-        $mosaics = ArrayHelpers::readArrayCount($reader, [UnresolvedMosaic::class, 'deserialize'], $mosaicsCount, fn ($e) => isset($e->mosaicId->comparer) ? $e->mosaicId->comparer() : $e->mosaicId->value);
+        $mosaics = ArrayHelpers::readArrayCount($reader, [UnresolvedMosaic::class, 'deserialize'], $mosaicsCount, fn ($e) => method_exists($e->mosaicId, 'comparer') ? $e->mosaicId->comparer() : $e->mosaicId->value);
         $message = $reader->read($messageSize);
 
         $instance->recipientAddress = $recipientAddress;
@@ -8941,7 +8950,7 @@ class EmbeddedTransferTransactionV1 extends EmbeddedTransaction
         $writer->write(Converter::intToBinary(\count($this->mosaics), 1)); // bound: mosaics_count
         $writer->write(Converter::intToBinary($this->transferTransactionBodyReserved_1, 1));
         $writer->write(Converter::intToBinary($this->transferTransactionBodyReserved_2, 4));
-        ArrayHelpers::writeArray($writer, $this->mosaics, fn ($e) => isset($e->mosaicId->comparer) ? $e->mosaicId->comparer() : $e->mosaicId->value);
+        ArrayHelpers::writeArray($writer, $this->mosaics, fn ($e) => method_exists($e->mosaicId, 'comparer') ? $e->mosaicId->comparer() : $e->mosaicId->value);
         $writer->write($this->message);
         return $writer->getBinaryData();
     }

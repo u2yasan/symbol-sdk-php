@@ -23,7 +23,7 @@ class MerkleHashBuilder
 
     /**
      * Adds a hash to the merkle hash.
-     * @param Hash256 componentHash Hash to add.
+     * @param Hash256 $componentHash Hash to add.
      */
     public function update(Hash256 $componentHash): void
     {

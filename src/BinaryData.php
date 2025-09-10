@@ -17,8 +17,8 @@ class BinaryData
 
     /**
      * Creates a byte array.
-     * @param int fixedSize Size of the array.
-     * @param string hex string.
+     * @param int $fixedSize Size of the array.
+     * @param string $binaryData Hex string.
      */
     public function __construct(int $fixedSize, string $binaryData)
     {
