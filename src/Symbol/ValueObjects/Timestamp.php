@@ -46,9 +46,7 @@ readonly class Timestamp
 
     public static function fromMilliseconds(int $milliseconds): self
     {
-        $timestamp = new self();
-        $timestamp->value = gmp_init($milliseconds);
-        return $timestamp;
+        return new self(gmp_init($milliseconds));
     }
 
     public function addSeconds(int $seconds): self
