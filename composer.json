@@ -1,6 +1,6 @@
 {
     "name": "symbol-blockchain-community/symbol-sdk",
-    "description": "Modern Symbol SDK for PHP 8.3+ - Zero legacy support",
+    "description": "Modern Symbol SDK for PHP 8.3+ - Zero legacy support (forked from symbol-blockchain-community/symbol-sdk)",
     "type": "library",
     "license": "MIT",
     "keywords": [
@@ -15,7 +15,14 @@
     "authors": [
         {
             "name": "Symbol Community",
-            "email": "community@symbolplatform.com"
+            "email": "community@symbolplatform.com",
+            "homepage": "https://symbolplatform.com"
+        },
+        {
+            "name": "u2yasan",
+            "email": "u2yasan@gmail.com",
+            "homepage": "https://github.com/u2yasan",
+            "role": "Maintainer"
         }
     ],
     "support": {
